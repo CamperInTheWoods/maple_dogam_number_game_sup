@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>게임 도우미 — 음술훈두</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
+  background: #0f172a;
+  color: #cbd5e1;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  padding: 24px 16px;
+}
+
+.container { width: 100%; max-width: 560px; }
+
+h1 {
+  text-align: center;
+  color: #f1f5f9;
+  font-size: 1.4rem;
+  margin-bottom: 4px;
+}
+
+.subtitle {
+  text-align: center;
+  color: #475569;
+  font-size: 0.8rem;
+  margin-bottom: 20px;
+}
+
+/* ── Stats Bar ── */
+.stats {
+  display: flex;
+  justify-content: space-around;
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 14px;
+}
+.stat { text-align: center; }
+.stat-val { font-size: 1.5rem; font-weight: 700; color: #f1f5f9; }
+.stat-lbl { font-size: 0.72rem; color: #475569; margin-top: 1px; }
+
+/* ── Element Badges ── */
+.el { display:inline-flex; align-items:center; justify-content:center;
+      width:34px; height:34px; border-radius:8px; font-weight:700; font-size:0.95rem; }
+.el-0 { background:#3b82f6; color:#fff; }
+.el-1 { background:#ef4444; color:#fff; }
+.el-2 { background:#22c55e; color:#fff; }
+.el-3 { background:#f59e0b; color:#1a1a1a; }
+
+/* ── History ── */
+.card {
+  background: #1e293b;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+}
+.card-title {
+  font-size: 0.72rem;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 10px;
+}
+.history-empty { text-align:center; color:#334155; font-size:0.85rem; padding:10px 0; }
+
+.h-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.h-num { width:18px; font-size:0.72rem; color:#475569; flex-shrink:0; }
+.h-els { display:flex; gap:4px; }
+.h-fbs { display:flex; gap:4px; margin-left:8px; }
+
+.fb { padding:2px 9px; border-radius:20px; font-size:0.78rem; font-weight:700; }
+.fb-ol   { background:#22c55e; color:#fff; }
+.fb-teul { background:#f59e0b; color:#1a1a1a; }
+.fb-mol  { background:#475569; color:#fff; }
+
+.game-msg { text-align:center; font-size:1rem; font-weight:700; padding-top:8px; }
+.game-win  { color:#22c55e; }
+.game-lose { color:#ef4444; }
+
+/* ── Suggestion ── */
+.suggest-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.suggest-info { font-size:0.78rem; color:#475569; }
+
+/* ── Picker Grid ── */
+.picker-grid {
+  display: grid;
+  grid-template-columns: 22px repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 14px;
+}
+.pg-corner { } /* empty top-left */
+.pg-header {
+  text-align: center;
+  font-size: 0.72rem;
+  color: #475569;
+  padding-bottom: 2px;
+}
+.pg-label {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 4px;
+}
+.pg-btn {
+  height: 38px;
+  border: 2px solid #1e293b;
+  border-radius: 7px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.9rem;
+  background: #0f172a;
+  color: #475569;
+  transition: all 0.1s;
+}
+.pg-btn:hover { border-color: #475569; color: #94a3b8; }
+.pg-btn.sel-0 { background:#3b82f6; color:#fff; border-color:#3b82f6; }
+.pg-btn.sel-1 { background:#ef4444; color:#fff; border-color:#ef4444; }
+.pg-btn.sel-2 { background:#22c55e; color:#fff; border-color:#22c55e; }
+.pg-btn.sel-3 { background:#f59e0b; color:#1a1a1a; border-color:#f59e0b; }
+
+/* ── Feedback Input ── */
+.fb-input-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.fb-grp { display:flex; align-items:center; gap:8px; }
+.fb-grp label { font-size:0.85rem; font-weight:700; width:24px; flex-shrink:0; }
+.lbl-ol   { color:#22c55e; }
+.lbl-teul { color:#f59e0b; }
+.lbl-mol  { color:#64748b; }
+.num-row { display:flex; gap:5px; }
+.num-btn {
+  width:36px; height:36px;
+  border:2px solid #334155; border-radius:7px;
+  background:#0f172a; color:#64748b;
+  cursor:pointer; font-size:0.95rem; font-weight:700;
+  transition: all 0.1s;
+}
+.num-btn:hover { border-color:#64748b; color:#94a3b8; }
+.num-btn.active-ol   { background:#22c55e; border-color:#22c55e; color:#fff; }
+.num-btn.active-teul { background:#f59e0b; border-color:#f59e0b; color:#1a1a1a; }
+.mol-display { font-size:1rem; font-weight:700; color:#64748b; width:36px; text-align:center; }
+.mol-eq  { font-size:0.75rem; color:#475569; }
+
+.submit-btn {
+  width:100%; padding:11px;
+  background:#3b82f6; color:#fff;
+  border:none; border-radius:9px;
+  font-size:1rem; font-weight:700;
+  cursor:pointer; transition:background 0.15s;
+  margin-bottom:8px;
+}
+.submit-btn:hover { background:#2563eb; }
+.submit-btn:disabled { background:#1e293b; color:#334155; cursor:not-allowed; }
+
+.btn-row { display:flex; gap:8px; }
+.undo-btn {
+  flex:1; padding:8px;
+  background:transparent; color:#f59e0b;
+  border:1px solid #78350f; border-radius:9px;
+  font-size:0.85rem; cursor:pointer;
+  transition:all 0.15s;
+}
+.undo-btn:hover { color:#fbbf24; border-color:#f59e0b; }
+.undo-btn:disabled { color:#334155; border-color:#1e293b; cursor:not-allowed; }
+.reset-btn {
+  flex:1; padding:8px;
+  background:transparent; color:#475569;
+  border:1px solid #334155; border-radius:9px;
+  font-size:0.85rem; cursor:pointer;
+  transition:all 0.15s;
+}
+.reset-btn:hover { color:#94a3b8; border-color:#64748b; }
+
+.no-sol { color:#ef4444; font-size:0.85rem; }
+.apply-btn {
+  padding:3px 10px;
+  background:#1e3a5f; color:#60a5fa;
+  border:1px solid #1d4ed8; border-radius:6px;
+  font-size:0.75rem; cursor:pointer;
+  transition:all 0.15s;
+}
+.apply-btn:hover { background:#1d4ed8; color:#fff; }
+.apply-btn:disabled { background:#1e293b; color:#334155; border-color:#1e293b; cursor:not-allowed; }
+
+/* ── Test Mode ── */
+.test-card {
+  background: #1a1032;
+  border: 1px solid #4c1d95;
+  border-radius: 12px;
+  padding: 12px 16px;
+  margin-bottom: 12px;
+}
+.test-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+}
+.test-title {
+  font-size: 0.72rem;
+  color: #a78bfa;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.test-toggle {
+  font-size: 0.75rem;
+  color: #7c3aed;
+  background: transparent;
+  border: 1px solid #4c1d95;
+  border-radius: 6px;
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.test-toggle:hover { border-color: #7c3aed; color: #a78bfa; }
+.test-body { margin-top: 10px; }
+.test-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.test-label { font-size: 0.8rem; color: #7c3aed; }
+.test-set-btn {
+  padding: 5px 14px;
+  background: #7c3aed;
+  color: #fff;
+  border: none;
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.test-set-btn:hover { background: #6d28d9; }
+.test-active-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.78rem;
+  color: #a78bfa;
+  margin-top: 6px;
+}
+/* Picker reused inside test with a different class */
+.test-picker { display: flex; gap: 6px; }
+.tp-grp { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.tp-lbl { font-size: 0.68rem; color: #6d28d9; }
+.tp-sel {
+  width: 44px; height: 36px;
+  border: 2px solid #4c1d95; border-radius: 7px;
+  background: #0f172a; color: #7c3aed;
+  font-weight: 700; font-size: 0.9rem;
+  cursor: pointer; transition: all 0.1s;
+}
+.tp-sel:hover { border-color: #7c3aed; }
+.tp-active-0 { background:#3b82f6; color:#fff; border-color:#3b82f6; }
+.tp-active-1 { background:#ef4444; color:#fff; border-color:#ef4444; }
+.tp-active-2 { background:#22c55e; color:#fff; border-color:#22c55e; }
+.tp-active-3 { background:#f59e0b; color:#1a1a1a; border-color:#f59e0b; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>게임 도우미</h1>
+  <p class="subtitle">음 · 술 · 훈 · 두 — 4자리 조합, 7번 안에 맞추기</p>
+
+  <!-- Test Mode -->
+  <div class="test-card">
+    <div class="test-header" onclick="toggleTestPanel()">
+      <span class="test-title">🧪 테스트 모드</span>
+      <button class="test-toggle" id="test-toggle-btn">열기</button>
+    </div>
+    <div class="test-body" id="test-body" style="display:none">
+      <div class="test-row">
+        <span class="test-label">정답 설정:</span>
+        <div class="test-picker" id="test-picker"></div>
+        <button class="test-set-btn" onclick="activateTestMode()">적용</button>
+      </div>
+      <div id="test-active-info"></div>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-val" id="stat-left">7</div>
+      <div class="stat-lbl">남은 시도</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="stat-poss">256</div>
+      <div class="stat-lbl">가능한 경우의 수</div>
+    </div>
+    <div class="stat">
+      <div class="stat-val" id="stat-used">0</div>
+      <div class="stat-lbl">사용한 시도</div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div class="card" id="history-card">
+    <div class="card-title">입력 기록</div>
+    <div class="history-empty" id="hist-empty">아직 입력된 시도가 없습니다</div>
+  </div>
+
+  <!-- Suggestion -->
+  <div class="card">
+    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
+      <span>추천 다음 추측</span>
+      <button class="apply-btn" id="apply-btn" onclick="applyRecommendation()">↓ 입력칸에 넣기</button>
+    </div>
+    <div class="suggest-row" id="suggest-row">
+      <span style="color:#334155;font-size:0.85rem">계산 중...</span>
+    </div>
+  </div>
+
+  <!-- Input -->
+  <div class="card" id="input-card">
+    <div class="card-title">내 추측 입력</div>
+
+    <div class="picker-grid" id="picker-grid"></div>
+
+    <div class="fb-input-row">
+      <div class="fb-grp">
+        <label class="lbl-ol">올</label>
+        <div class="num-row" id="ol-row"></div>
+      </div>
+      <div class="fb-grp">
+        <label class="lbl-teul">틀</label>
+        <div class="num-row" id="teul-row"></div>
+      </div>
+      <div class="fb-grp">
+        <label class="lbl-mol">몰</label>
+        <span class="mol-display" id="v-mol">4</span>
+        <span class="mol-eq">= 4 − 올 − 틀</span>
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submit-btn" onclick="submitGuess()">입력</button>
+    <div class="btn-row">
+      <button class="undo-btn" id="undo-btn" onclick="undoLast()" disabled>마지막 취소</button>
+      <button class="reset-btn" onclick="resetGame()">처음부터 다시</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const EL = ['음', '술', '훈', '두'];
+const EC = ['sel-0','sel-1','sel-2','sel-3']; // selected class names
+
+// Generate all 4^4 = 256 codes
+const ALL = [];
+for (let a=0;a<4;a++) for (let b=0;b<4;b++) for (let c=0;c<4;c++) for (let d=0;d<4;d++)
+  ALL.push([a,b,c,d]);
+
+// State
+let poss = ALL.slice();
+let history = [];
+let sel = [0,0,0,0]; // current selected elements per position
+let ol = 0, teul = 0;
+let used = 0;
+let over = false;
+
+// Current recommendation
+let lastRecommendation = null;
+
+// Test mode
+let testSecret = null;   // null = off, array = secret answer
+let testSel = [0,0,0,0]; // selection in test picker
+
+// ── Mastermind feedback calculation ──
+function feedback(guess, secret) {
+  let blacks = 0;
+  for (let i=0;i<4;i++) if (guess[i]===secret[i]) blacks++;
+  let total = 0;
+  for (let e=0;e<4;e++) {
+    total += Math.min(guess.filter(x=>x===e).length, secret.filter(x=>x===e).length);
+  }
+  return { ol: blacks, teul: total - blacks };
+}
+
+function filterPoss(possibilities, guess, expOl, expTeul) {
+  return possibilities.filter(s => {
+    const f = feedback(guess, s);
+    return f.ol === expOl && f.teul === expTeul;
+  });
+}
+
+// Minimax: find guess that minimises worst-case remaining possibilities
+function bestGuess(possibilities) {
+  if (possibilities.length === 0) return null;
+  if (possibilities.length === 1) return possibilities[0];
+
+  const possSet = new Set(possibilities.map(p=>p.join()));
+  let best = possibilities[0];
+  let bestScore = Infinity;
+
+  for (const g of ALL) {
+    const parts = {};
+    for (const s of possibilities) {
+      const f = feedback(g, s);
+      const k = f.ol*10 + f.teul;
+      parts[k] = (parts[k]||0) + 1;
+    }
+    const worst = Math.max(...Object.values(parts));
+    // Prefer guesses that are themselves still possible (tiebreak)
+    const score = worst * 2 - (possSet.has(g.join()) ? 1 : 0);
+    if (score < bestScore) { bestScore = score; best = g; }
+  }
+  return best;
+}
+
+// ── Test mode ──
+function toggleTestPanel() {
+  const body = document.getElementById('test-body');
+  const btn = document.getElementById('test-toggle-btn');
+  const open = body.style.display === 'none';
+  body.style.display = open ? 'block' : 'none';
+  btn.textContent = open ? '닫기' : '열기';
+}
+
+function buildTestPicker() {
+  const picker = document.getElementById('test-picker');
+  picker.innerHTML = '';
+  for (let pos = 0; pos < 4; pos++) {
+    const grp = document.createElement('div');
+    grp.className = 'tp-grp';
+    const lbl = document.createElement('div');
+    lbl.className = 'tp-lbl';
+    lbl.textContent = (pos+1)+'번';
+    grp.appendChild(lbl);
+    const btn = document.createElement('button');
+    btn.className = 'tp-sel tp-active-'+testSel[pos];
+    btn.textContent = EL[testSel[pos]];
+    btn.onclick = () => cycleTestSel(pos, btn);
+    grp.appendChild(btn);
+    picker.appendChild(grp);
+  }
+}
+
+function cycleTestSel(pos, btn) {
+  testSel[pos] = (testSel[pos] + 1) % 4;
+  btn.className = 'tp-sel tp-active-'+testSel[pos];
+  btn.textContent = EL[testSel[pos]];
+}
+
+function activateTestMode() {
+  testSecret = testSel.slice();
+  const info = document.getElementById('test-active-info');
+  const wrap = document.createElement('div');
+  wrap.className = 'test-active-badge';
+  wrap.innerHTML = '정답: ';
+  testSecret.forEach(e => {
+    const s = document.createElement('span');
+    s.className = 'el el-'+e;
+    s.style.cssText = 'width:26px;height:26px;font-size:0.8rem;border-radius:5px;';
+    s.textContent = EL[e];
+    wrap.appendChild(s);
+  });
+  info.innerHTML = '';
+  info.appendChild(wrap);
+  // Reset game when secret changes
+  resetGame();
+}
+
+// ── Render helpers ──
+function elBadge(e) {
+  const s = document.createElement('span');
+  s.className = 'el el-'+e;
+  s.textContent = EL[e];
+  return s;
+}
+
+function buildPicker() {
+  const grid = document.getElementById('picker-grid');
+  grid.innerHTML = '';
+
+  // Top-left corner
+  const corner = document.createElement('div');
+  corner.className = 'pg-corner';
+  grid.appendChild(corner);
+
+  // Column headers (positions)
+  for (let pos=0;pos<4;pos++) {
+    const h = document.createElement('div');
+    h.className = 'pg-header';
+    h.textContent = (pos+1)+'번';
+    grid.appendChild(h);
+  }
+
+  // Rows (elements)
+  for (let e=0;e<4;e++) {
+    // Row label
+    const lbl = document.createElement('div');
+    lbl.className = 'pg-label';
+    lbl.appendChild(elBadge(e));
+    lbl.style.width = '22px';
+    lbl.style.height = '38px';
+    lbl.style.padding = '0';
+    lbl.firstChild.style.width = '22px';
+    lbl.firstChild.style.height = '22px';
+    lbl.firstChild.style.fontSize = '0.72rem';
+    lbl.firstChild.style.borderRadius = '5px';
+    grid.appendChild(lbl);
+
+    // Buttons for each position
+    for (let pos=0;pos<4;pos++) {
+      const btn = document.createElement('button');
+      btn.className = 'pg-btn' + (sel[pos]===e ? ' '+EC[e] : '');
+      btn.textContent = EL[e];
+      btn.dataset.pos = pos;
+      btn.dataset.el = e;
+      btn.onclick = () => pick(pos, e);
+      grid.appendChild(btn);
+    }
+  }
+}
+
+function pick(pos, e) {
+  sel[pos] = e;
+  // Update buttons in that column
+  const btns = document.querySelectorAll(`.pg-btn[data-pos="${pos}"]`);
+  btns.forEach(b => {
+    const be = parseInt(b.dataset.el);
+    b.className = 'pg-btn' + (be===e ? ' '+EC[be] : '');
+  });
+}
+
+function buildNumRows() {
+  ['ol','teul'].forEach(type => {
+    const row = document.getElementById(type+'-row');
+    row.innerHTML = '';
+    for (let n=0;n<=4;n++) {
+      const btn = document.createElement('button');
+      btn.className = 'num-btn';
+      btn.textContent = n;
+      btn.dataset.val = n;
+      btn.onclick = () => setVal(type, n);
+      row.appendChild(btn);
+    }
+  });
+  updateFbDisplay();
+}
+
+function updateFbDisplay() {
+  // Highlight active buttons
+  document.querySelectorAll('#ol-row .num-btn').forEach(b => {
+    b.className = 'num-btn' + (parseInt(b.dataset.val)===ol ? ' active-ol' : '');
+  });
+  document.querySelectorAll('#teul-row .num-btn').forEach(b => {
+    b.className = 'num-btn' + (parseInt(b.dataset.val)===teul ? ' active-teul' : '');
+  });
+  document.getElementById('v-mol').textContent = 4-ol-teul;
+}
+
+function setVal(type, n) {
+  if (type==='ol') {
+    ol = Math.min(n, 4-teul);
+  } else {
+    teul = Math.min(n, 4-ol);
+  }
+  updateFbDisplay();
+}
+
+function renderSuggestion() {
+  const row = document.getElementById('suggest-row');
+  row.innerHTML = '';
+
+  if (poss.length === 0) {
+    const s = document.createElement('span');
+    s.className = 'no-sol';
+    s.textContent = '가능한 경우가 없습니다. 입력 내용을 확인하고 처음부터 다시 시작하세요.';
+    row.appendChild(s);
+    return;
+  }
+
+  const g = bestGuess(poss);
+  lastRecommendation = g;
+  g.forEach(e => row.appendChild(elBadge(e)));
+
+  const info = document.createElement('span');
+  info.className = 'suggest-info';
+  const inPoss = poss.some(p=>p.join()===g.join());
+  info.textContent = `— ${poss.length}가지 중 최적` + (inPoss ? ' (가능한 답)' : '');
+  row.appendChild(info);
+}
+
+function applyRecommendation() {
+  if (!lastRecommendation) return;
+  lastRecommendation.forEach((e, pos) => pick(pos, e));
+}
+
+function renderHistory() {
+  const card = document.getElementById('history-card');
+  // Remove old rows
+  card.querySelectorAll('.h-row, .game-msg').forEach(r=>r.remove());
+
+  const empty = document.getElementById('hist-empty');
+  empty.style.display = history.length ? 'none' : 'block';
+
+  history.forEach((entry, i) => {
+    const row = document.createElement('div');
+    row.className = 'h-row';
+
+    const num = document.createElement('span');
+    num.className = 'h-num';
+    num.textContent = i+1;
+    row.appendChild(num);
+
+    const els = document.createElement('div');
+    els.className = 'h-els';
+    entry.guess.forEach(e => els.appendChild(elBadge(e)));
+    row.appendChild(els);
+
+    const fbs = document.createElement('div');
+    fbs.className = 'h-fbs';
+    if (entry.ol)   { const b=document.createElement('span'); b.className='fb fb-ol';   b.textContent=entry.ol+'올';   fbs.appendChild(b); }
+    if (entry.teul) { const b=document.createElement('span'); b.className='fb fb-teul'; b.textContent=entry.teul+'틀'; fbs.appendChild(b); }
+    if (entry.mol)  { const b=document.createElement('span'); b.className='fb fb-mol';  b.textContent=entry.mol+'몰';  fbs.appendChild(b); }
+    row.appendChild(fbs);
+
+    card.appendChild(row);
+  });
+
+  if (over) {
+    const msg = document.createElement('div');
+    const last = history[history.length-1];
+    if (last.ol === 4) {
+      msg.className = 'game-msg game-win';
+      msg.textContent = `${used}번 만에 정답!`;
+    } else {
+      msg.className = 'game-msg game-lose';
+      msg.textContent = `7번을 모두 사용했습니다.`;
+    }
+    card.appendChild(msg);
+  }
+}
+
+function updateStats() {
+  document.getElementById('stat-left').textContent = Math.max(0, 7-used);
+  document.getElementById('stat-used').textContent = used;
+  document.getElementById('stat-poss').textContent = poss.length;
+}
+
+function recomputePoss() {
+  poss = ALL.slice();
+  for (const e of history) {
+    if (e.ol < 4) poss = filterPoss(poss, e.guess, e.ol, e.teul);
+  }
+}
+
+function undoLast() {
+  if (history.length === 0) return;
+  history.pop();
+  used--;
+  over = false;
+  recomputePoss();
+
+  ol = 0; teul = 0;
+  updateFbDisplay();
+  updateStats();
+  renderHistory();
+  renderSuggestion();
+  document.getElementById('submit-btn').disabled = false;
+  document.getElementById('input-card').style.opacity = '1';
+  document.getElementById('undo-btn').disabled = (history.length === 0);
+}
+
+function submitGuess() {
+  if (over) return;
+
+  // Test mode: auto-calculate feedback
+  if (testSecret) {
+    const f = feedback(sel, testSecret);
+    ol = f.ol; teul = f.teul;
+    updateFbDisplay();
+  }
+
+  const isWin = (ol === 4);
+  const mol = 4 - ol - teul;
+
+  history.push({ guess: sel.slice(), ol, teul, mol });
+  used++;
+
+  if (!isWin) {
+    poss = filterPoss(poss, sel, ol, teul);
+  }
+
+  if (isWin || used >= 7) over = true;
+
+  ol = 0; teul = 0;
+  updateFbDisplay();
+  document.getElementById('undo-btn').disabled = false;
+
+  if (over) {
+    document.getElementById('submit-btn').disabled = true;
+    document.getElementById('input-card').style.opacity = '0.5';
+  }
+
+  updateStats();
+  renderHistory();
+  if (!over) renderSuggestion();
+  else {
+    // Show remaining possibilities after game over (if loss)
+    const row = document.getElementById('suggest-row');
+    row.innerHTML = '';
+    const last = history[history.length-1];
+    if (last.ol !== 4 && poss.length > 0) {
+      const lbl = document.createElement('span');
+      lbl.className = 'suggest-info';
+      lbl.textContent = '남은 가능한 답: ';
+      row.appendChild(lbl);
+      poss.slice(0,6).forEach((p,i) => {
+        if (i) { const sep=document.createElement('span'); sep.style.cssText='margin:0 4px;color:#334155'; sep.textContent='|'; row.appendChild(sep); }
+        const wrap=document.createElement('span'); wrap.style.display='inline-flex'; wrap.style.gap='3px';
+        p.forEach(e=>wrap.appendChild(elBadge(e)));
+        row.appendChild(wrap);
+      });
+      if (poss.length > 6) {
+        const m=document.createElement('span'); m.className='suggest-info'; m.style.marginLeft='6px';
+        m.textContent=`외 ${poss.length-6}가지`; row.appendChild(m);
+      }
+    }
+  }
+}
+
+function resetGame() {
+  poss = ALL.slice();
+  history = [];
+  sel = [0,0,0,0];
+  ol = 0; teul = 0;
+  used = 0; over = false;
+
+  updateFbDisplay();
+  updateStats();
+  renderHistory();
+  buildPicker();
+  renderSuggestion();
+
+  document.getElementById('submit-btn').disabled = false;
+  document.getElementById('input-card').style.opacity = '1';
+  document.getElementById('undo-btn').disabled = true;
+  // Don't clear testSecret on reset so you can replay the same secret
+}
+
+// Init
+buildPicker();
+buildNumRows();
+buildTestPicker();
+renderSuggestion();
+</script>
+</body>
+</html>
