@@ -91,7 +91,6 @@ h1 {
 
 /* ── Suggestion ── */
 .suggest-row { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
-.suggest-info { font-size:0.78rem; color:#475569; }
 
 /* ── Picker Grid ── */
 .picker-grid {
@@ -187,6 +186,27 @@ h1 {
 .reset-btn:hover { color:#94a3b8; border-color:#64748b; }
 
 .no-sol { color:#ef4444; font-size:0.85rem; }
+
+.guess-type-badge {
+  padding: 2px 8px; border-radius: 20px;
+  font-size: 0.74rem; font-weight: 700;
+}
+.type-answer { background:#1e3a5f; color:#60a5fa; border:1px solid #1d4ed8; }
+.type-info   { background:#2d1b4e; color:#c084fc; border:1px solid #7c3aed; }
+
+.suggest-info { font-size:0.78rem; color:#475569; }
+
+.auto-sim-btn {
+  padding: 5px 12px;
+  background: #4c1d95; color: #e9d5ff;
+  border: 1px solid #6d28d9; border-radius: 7px;
+  font-size: 0.8rem; font-weight: 700;
+  cursor: pointer; transition: all 0.15s;
+  margin-top: 8px;
+}
+.auto-sim-btn:hover { background: #6d28d9; color: #fff; }
+.auto-sim-btn:disabled { background: #1e293b; color: #334155; border-color:#1e293b; cursor:not-allowed; }
+
 .apply-btn {
   padding:3px 10px;
   background:#1e3a5f; color:#60a5fa;
@@ -289,6 +309,7 @@ h1 {
         <button class="test-set-btn" onclick="activateTestMode()">적용</button>
       </div>
       <div id="test-active-info"></div>
+      <button class="auto-sim-btn" id="auto-sim-btn" onclick="autoSimulate()" disabled>▶ 자동 시뮬레이션</button>
     </div>
   </div>
 
@@ -469,8 +490,51 @@ function activateTestMode() {
   });
   info.innerHTML = '';
   info.appendChild(wrap);
-  // Reset game when secret changes
   resetGame();
+  document.getElementById('auto-sim-btn').disabled = false;
+}
+
+async function autoSimulate() {
+  if (!testSecret || over) return;
+  const btn = document.getElementById('auto-sim-btn');
+  btn.disabled = true;
+  btn.textContent = '실행 중...';
+
+  // Step through until solved or 7 attempts
+  while (!over) {
+    // Apply recommendation
+    if (!lastRecommendation) break;
+    lastRecommendation.forEach((e, pos) => pick(pos, e));
+
+    // Calculate feedback from secret
+    const f = feedback(sel, testSecret);
+    ol = f.ol; teul = f.teul;
+    updateFbDisplay();
+
+    // Submit
+    const isWin = (ol === 4);
+    const mol = 4 - ol - teul;
+    history.push({ guess: sel.slice(), ol, teul, mol });
+    used++;
+    if (!isWin) poss = filterPoss(poss, sel, ol, teul);
+    if (isWin || used >= 7) over = true;
+
+    ol = 0; teul = 0;
+    updateFbDisplay();
+    if (over) {
+      document.getElementById('submit-btn').disabled = true;
+      document.getElementById('input-card').style.opacity = '0.5';
+    }
+    updateStats();
+    renderHistory();
+    if (!over) renderSuggestion();
+
+    // Short delay so user can see each step
+    await new Promise(r => setTimeout(r, 600));
+  }
+
+  btn.textContent = '▶ 자동 시뮬레이션';
+  if (over) btn.disabled = true;
 }
 
 // ── Render helpers ──
@@ -588,10 +652,16 @@ function renderSuggestion() {
   lastRecommendation = g;
   g.forEach(e => row.appendChild(elBadge(e)));
 
+  const inPoss = poss.some(p=>p.join()===g.join());
+
+  const badge = document.createElement('span');
+  badge.className = inPoss ? 'guess-type-badge type-answer' : 'guess-type-badge type-info';
+  badge.textContent = inPoss ? '정답 후보' : '정보 수집용';
+  row.appendChild(badge);
+
   const info = document.createElement('span');
   info.className = 'suggest-info';
-  const inPoss = poss.some(p=>p.join()===g.join());
-  info.textContent = `— ${poss.length}가지 중 최적` + (inPoss ? ' (가능한 답)' : '');
+  info.textContent = `${poss.length}가지 중 최적`;
   row.appendChild(info);
 }
 
