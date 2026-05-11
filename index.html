@@ -101,6 +101,7 @@ h1 {
   margin-bottom: 8px;
 }
 .h-num { width:18px; font-size:0.72rem; color:var(--gray); flex-shrink:0; }
+.h-poss { font-size:0.72rem; color:var(--border); margin-left:auto; flex-shrink:0; }
 .h-els { display:flex; gap:4px; }
 .h-fbs { display:flex; gap:4px; margin-left:8px; }
 
@@ -221,6 +222,16 @@ h1 {
 .type-info   { background:#2a1a10; color:var(--gray); border:1px solid #4a2e1a; }
 
 .suggest-info { font-size:0.78rem; color:var(--gray); }
+
+.version-label {
+  position: fixed;
+  bottom: 10px; right: 12px;
+  font-size: .6rem;
+  color: rgba(200,148,50,.35);
+  cursor: default;
+  user-select: none;
+  letter-spacing: .03em;
+}
 
 .auto-sim-btn {
   padding: 5px 12px;
@@ -401,6 +412,8 @@ h1 {
   </div>
 </div>
 
+<div class="version-label">똘레로_1.001.0</div>
+
 <script>
 const EL = ['음', '술', '훈', '두'];
 const EC = ['sel-0','sel-1','sel-2','sel-3']; // selected class names
@@ -540,7 +553,7 @@ async function autoSimulate() {
     // Submit
     const isWin = (ol === 4);
     const mol = 4 - ol - teul;
-    history.push({ guess: sel.slice(), ol, teul, mol });
+    history.push({ guess: sel.slice(), ol, teul, mol, possCount: poss.length });
     used++;
     if (!isWin) poss = filterPoss(poss, sel, ol, teul);
     if (isWin || used >= 7) over = true;
@@ -725,6 +738,13 @@ function renderHistory() {
     if (entry.mol)  { const b=document.createElement('span'); b.className='fb fb-mol';  b.textContent=entry.mol+'몰';  fbs.appendChild(b); }
     row.appendChild(fbs);
 
+    if (entry.possCount != null) {
+      const pc = document.createElement('span');
+      pc.className = 'h-poss';
+      pc.textContent = entry.possCount+'개 중';
+      row.appendChild(pc);
+    }
+
     card.appendChild(row);
   });
 
@@ -785,7 +805,7 @@ function submitGuess() {
   const isWin = (ol === 4);
   const mol = 4 - ol - teul;
 
-  history.push({ guess: sel.slice(), ol, teul, mol });
+  history.push({ guess: sel.slice(), ol, teul, mol, possCount: poss.length });
   used++;
 
   if (!isWin) {
