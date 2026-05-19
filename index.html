@@ -587,7 +587,12 @@ h1 {
 
         <!-- 좌: 이름 풀 -->
         <div class="card">
-          <div class="card-title">참가자</div>
+          <div class="card-title">참가자
+            <span id="reward-trash" style="margin-left:8px;font-size:1.1rem;cursor:default;opacity:0.4;transition:all 0.15s"
+              ondragover="event.preventDefault();this.style.opacity='1';this.style.transform='scale(1.3)'"
+              ondragleave="this.style.opacity='0.4';this.style.transform=''"
+              ondrop="rewardDropToTrash(event)">🗑️</span>
+          </div>
           <div class="reward-add-row">
             <input class="reward-name-input" id="reward-name-input" placeholder="이름 입력"
               onkeydown="if(event.key==='Enter')rewardAddName()">
@@ -1131,7 +1136,7 @@ const ZONE_CONFIGS = {
 };
 
 let rewardCount = 6;
-let rewardNames = [];
+let rewardNames = JSON.parse(localStorage.getItem('rewardNames') || '[]');
 let zoneAssign = {};
 let rDraggingName = null;
 let rDraggingFrom = null;
@@ -1161,12 +1166,32 @@ function rewardLoadImage(input) {
   reader.readAsDataURL(input.files[0]);
 }
 
+function rewardSaveNames() {
+  localStorage.setItem('rewardNames', JSON.stringify(rewardNames));
+}
+
 function rewardAddName() {
   const input = document.getElementById('reward-name-input');
   const name = input.value.trim();
   if (!name || rewardNames.includes(name)) return;
   rewardNames.push(name);
+  rewardSaveNames();
   input.value = '';
+  rewardRender();
+}
+
+function rewardDropToTrash(e) {
+  e.preventDefault();
+  const trash = document.getElementById('reward-trash');
+  trash.style.opacity = '0.4';
+  trash.style.transform = '';
+  if (!rDraggingName) return;
+  rewardNames = rewardNames.filter(n => n !== rDraggingName);
+  if (rDraggingFrom !== 'pool') {
+    zoneAssign[rDraggingFrom] = (zoneAssign[rDraggingFrom] || []).filter(n => n !== rDraggingName);
+  }
+  rewardSaveNames();
+  rDraggingName = null; rDraggingFrom = null;
   rewardRender();
 }
 
