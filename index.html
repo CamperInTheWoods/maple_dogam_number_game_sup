@@ -281,25 +281,30 @@ h1 {
   border-radius: 8px; overflow: hidden;
   background-size: 100% 100%; background-repeat: no-repeat;
 }
-.rmap-box {
+.rmap-zone {
   position: absolute;
-  width: 5%; height: 23.5%;
-  transform: translate(-50%, -50%);
-  border-radius: 4px;
-  border: 2px solid currentColor;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.55rem; font-weight: 700;
-  cursor: pointer; overflow: hidden;
-  transition: all 0.15s;
+  border: 2px solid rgba(200,148,50,0.35);
+  background: rgba(26,14,8,0.5);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  cursor: default; overflow: hidden;
+  transition: background 0.2s, border-color 0.2s;
   box-sizing: border-box;
-  text-align: center; line-height: 1.1;
 }
-.rmap-box.drag-over {
-  filter: brightness(1.5);
-  transform: translate(-50%, -50%) scale(1.2);
-  z-index: 10;
+.rmap-zone.has-name {
+  background: rgba(42,30,8,0.7);
+  border-color: rgba(200,148,50,0.85);
 }
-.rmap-box.has-name { border-width: 2.5px; }
+.rmap-zone.drag-over {
+  background: rgba(200,148,50,0.25);
+  border-color: var(--gold);
+}
+.rmap-zone-num { font-size: 0.6rem; color: #fff; line-height: 1.2; text-shadow: 0 1px 3px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.8); }
+.rmap-zone-names {
+  font-size: 0.75rem; color: #fff;
+  font-weight: 700; text-align: center; line-height: 1.3;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.95), 0 0 8px rgba(0,0,0,0.8);
+}
 
 .reward-bottom-row {
   display: grid; grid-template-columns: 1fr 1fr 1fr;
@@ -332,14 +337,34 @@ h1 {
 }
 .name-pool.drag-over { border-color: var(--gold); background: #2a1e08; }
 
+#reward-trash { display:inline-flex; align-items:center; margin-left:8px; cursor:default; vertical-align:middle; }
+#reward-trash svg { overflow:visible; }
+.trash-lid-group {
+  transform-box: fill-box;
+  transform-origin: left center;
+  transition: transform 0.22s cubic-bezier(.4,0,.2,1);
+}
+#reward-trash.lid-open .trash-lid-group { transform: rotate(-48deg); }
+@keyframes trash-digest {
+  0%,100% { transform: rotate(0deg); }
+  18%     { transform: rotate(-10deg); }
+  38%     { transform: rotate(10deg); }
+  55%     { transform: rotate(-7deg); }
+  72%     { transform: rotate(6deg); }
+  88%     { transform: rotate(-3deg); }
+}
+#reward-trash.digesting { animation: trash-digest 0.55s ease-in-out; }
+
 .name-card {
   padding: 4px 10px;
   background: var(--bg-panel-inner); border: 1px solid var(--border);
   border-radius: 6px; font-size: 0.82rem; color: var(--dark);
   cursor: grab; user-select: none; transition: all 0.1s;
+  display: flex; flex-direction: column; gap: 1px;
 }
 .name-card:hover { border-color: var(--gold); color: var(--gold); }
 .name-card.dragging { opacity: 0.35; }
+.name-stat-line { font-size: 0.62rem; color: var(--gray); line-height: 1.2; }
 
 .zone-slot {
   display: flex; align-items: center; gap: 8px;
@@ -584,16 +609,32 @@ h1 {
         <!-- 좌: 이름 풀 -->
         <div class="card">
           <div class="card-title">참가자
-            <span id="reward-trash" style="margin-left:8px;font-size:1.1rem;cursor:default;opacity:0.4;transition:all 0.15s"
-              ondragover="event.preventDefault();this.style.opacity='1';this.style.transform='scale(1.3)'"
-              ondragleave="this.style.opacity='0.4';this.style.transform=''"
-              ondrop="rewardDropToTrash(event)">🗑️</span>
+            <span id="reward-trash">
+              <svg width="20" height="24" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <!-- 몸통 -->
+                <rect x="3" y="11" width="18" height="16" rx="2" fill="#a08868" opacity="0.5"/>
+                <line x1="9" y1="14" x2="9" y2="24" stroke="#a08868" stroke-width="1.5" opacity="0.5"/>
+                <line x1="15" y1="14" x2="15" y2="24" stroke="#a08868" stroke-width="1.5" opacity="0.5"/>
+                <!-- 뚜껑 (힌지: 오른쪽 끝) -->
+                <g class="trash-lid-group">
+                  <rect x="2" y="8" width="20" height="3.5" rx="1.5" fill="#a08868" opacity="0.7"/>
+                  <rect x="9" y="4.5" width="6" height="3.5" rx="1.5" fill="#a08868" opacity="0.7"/>
+                </g>
+              </svg>
+            </span>
           </div>
           <div class="reward-add-row">
-            <input class="reward-name-input" id="reward-name-input" placeholder="이름 입력"
+            <input class="reward-name-input" id="reward-name-input" placeholder="이름 추가 (전체 목록)"
               onkeydown="if(event.key==='Enter')rewardAddName()">
             <button class="reward-add-btn" onclick="rewardAddName()">추가</button>
           </div>
+          <div style="font-size:0.7rem;color:var(--gray);margin:6px 0 2px;padding-left:2px;display:flex;align-items:center;gap:4px">
+            <span>전체 목록</span>
+            <button onclick="rewardSortMembers()" style="font-size:0.6rem;padding:1px 6px;border-radius:6px;cursor:pointer;background:var(--bg-input);color:var(--gray);border:1px solid var(--border)">가나다↑</button>
+            <button onclick="rewardToggleAll()" id="reward-toggle-all-btn" style="font-size:0.6rem;padding:1px 6px;border-radius:6px;cursor:pointer;background:var(--bg-input);color:var(--gray);border:1px solid var(--border)">전체참가</button>
+          </div>
+          <div id="reward-all-members" style="display:flex;flex-direction:column;gap:2px;max-height:160px;overflow-y:auto;margin-bottom:8px"></div>
+          <div style="font-size:0.7rem;color:var(--gray);margin:4px 0 2px;padding-left:2px;display:flex;align-items:center;gap:5px">오늘 참가 <span id="reward-today-count" style="color:var(--gold);font-weight:700"></span></div>
           <div class="name-pool" id="reward-name-pool"
             ondragover="event.preventDefault();this.classList.add('drag-over')"
             ondragleave="this.classList.remove('drag-over')"
@@ -603,7 +644,11 @@ h1 {
 
         <!-- 중: 구역 슬롯 -->
         <div class="card">
-          <div class="card-title">자리 배정</div>
+          <div class="card-title">자리 배정
+            <button onclick="rewardAutoAssign()" style="margin-left:8px;padding:2px 8px;font-size:0.7rem;background:#3b2a7a;color:#c4a8ff;border:1px solid #7c5cbf;border-radius:4px;cursor:pointer;font-weight:700">자동배정</button>
+            <button onclick="rewardRecord()" style="margin-left:4px;padding:2px 8px;font-size:0.7rem;background:var(--gold);color:#1a0e08;border:none;border-radius:4px;cursor:pointer;font-weight:700">기록</button>
+            <button onclick="rewardResetHistory()" style="margin-left:4px;padding:2px 8px;font-size:0.7rem;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:4px;cursor:pointer">초기화</button>
+          </div>
           <div id="reward-slots"></div>
         </div>
 
@@ -621,7 +666,7 @@ h1 {
 
 </div>
 
-<div class="version-label">똘레로_1.001.0</div>
+<div class="version-label">똘레로_1.002.0</div>
 
 <script>
 const EL = ['음', '술', '훈', '두'];
@@ -1131,19 +1176,20 @@ const ZONE_CONFIGS = {
   ],
 };
 
-const BOX_POSITIONS = {
-  1:{cx:2.7,cy:20.6}, 2:{cx:8.4,cy:20.6}, 3:{cx:8.1,cy:37.7}, 4:{cx:16.0,cy:36.6},
-  5:{cx:2.1,cy:66.3}, 6:{cx:10.2,cy:80.0}, 7:{cx:19.0,cy:78.9}, 8:{cx:32.8,cy:77.8},
-  9:{cx:27.1,cy:27.8}, 10:{cx:34.6,cy:27.8}, 11:{cx:42.8,cy:11.3}, 12:{cx:48.5,cy:12.3},
-  13:{cx:30.6,cy:54.7}, 14:{cx:40.0,cy:52.5}, 15:{cx:41.0,cy:77.8}, 16:{cx:43.5,cy:77.8},
-  17:{cx:62.7,cy:75.0}, 18:{cx:63.0,cy:33.8}, 19:{cx:70.6,cy:33.8},
-  20:{cx:78.1,cy:13.5}, 21:{cx:78.2,cy:70.7}, 22:{cx:87.8,cy:71.7},
-  23:{cx:95.1,cy:71.7}, 24:{cx:92.8,cy:13.5}, 25:{cx:97.2,cy:9.6},
-};
-const ZONE_COLORS = ['#e74c3c','#e67e22','#eab308','#22c55e','#06b6d4','#3b82f6','#a855f7','#ec4899','#14b8a6'];
-
 let rewardCount = 6;
 let rewardNames = JSON.parse(localStorage.getItem('rewardNames') || '[]');
+let rewardAllMembers = JSON.parse(localStorage.getItem('rewardAllMembers') || 'null');
+if (!rewardAllMembers) {
+  rewardAllMembers = [...rewardNames];
+  localStorage.setItem('rewardAllMembers', JSON.stringify(rewardAllMembers));
+}
+let rewardHistory = JSON.parse(localStorage.getItem('rewardHistory') || '{}');
+let rewardMages = new Set(JSON.parse(localStorage.getItem('rewardMages') || '[]'));
+
+function isMageZone(zoneId) {
+  const zone = ZONE_CONFIGS[rewardCount].find(z => z.id === Number(zoneId));
+  return zone ? zone.boxes.some(b => b >= 9 && b <= 14) : false;
+}
 let zoneAssign = {};
 let rDraggingName = null;
 let rDraggingFrom = null;
@@ -1180,25 +1226,70 @@ function rewardSaveNames() {
 function rewardAddName() {
   const input = document.getElementById('reward-name-input');
   const name = input.value.trim();
-  if (!name || rewardNames.includes(name)) return;
-  rewardNames.push(name);
-  rewardSaveNames();
+  if (!name || rewardAllMembers.includes(name)) return;
+  rewardAllMembers.push(name);
+  localStorage.setItem('rewardAllMembers', JSON.stringify(rewardAllMembers));
   input.value = '';
   rewardRender();
 }
 
-function rewardDropToTrash(e) {
-  e.preventDefault();
-  const trash = document.getElementById('reward-trash');
-  trash.style.opacity = '0.4';
-  trash.style.transform = '';
-  if (!rDraggingName) return;
-  rewardNames = rewardNames.filter(n => n !== rDraggingName);
-  if (rDraggingFrom !== 'pool') {
-    zoneAssign[rDraggingFrom] = (zoneAssign[rDraggingFrom] || []).filter(n => n !== rDraggingName);
+function rewardToggleToday(name) {
+  if (rewardNames.includes(name)) {
+    rewardNames = rewardNames.filter(n => n !== name);
+    Object.keys(zoneAssign).forEach(z => {
+      zoneAssign[z] = (zoneAssign[z] || []).filter(n => n !== name);
+    });
+  } else {
+    rewardNames.push(name);
   }
   rewardSaveNames();
-  rDraggingName = null; rDraggingFrom = null;
+  rewardSyncCount();
+  rewardRender();
+}
+
+function rewardSyncCount() {
+  const raw = rewardNames.length;
+  if (raw < 6) return;
+  const n = Math.min(raw, 9);
+  if (rewardCount === n) return;
+  const newZones = ZONE_CONFIGS[n].map(z => z.id);
+  Object.keys(zoneAssign).forEach(z => { if (!newZones.includes(+z)) zoneAssign[z] = []; });
+  const next = {};
+  newZones.forEach(z => { next[z] = zoneAssign[z] || []; });
+  zoneAssign = next;
+  rewardCount = n;
+  const sel = document.getElementById('reward-count-select');
+  if (sel) sel.value = n;
+}
+
+function rewardSortMembers() {
+  rewardAllMembers.sort((a, b) => a.localeCompare(b, 'ko'));
+  localStorage.setItem('rewardAllMembers', JSON.stringify(rewardAllMembers));
+  rewardRender();
+}
+
+function rewardToggleAll() {
+  const allParticipating = rewardAllMembers.length > 0 && rewardAllMembers.every(n => rewardNames.includes(n));
+  if (allParticipating) {
+    rewardNames = [];
+    Object.keys(zoneAssign).forEach(z => { zoneAssign[z] = []; });
+  } else {
+    rewardNames = [...rewardAllMembers];
+  }
+  rewardSaveNames();
+  rewardSyncCount();
+  rewardRender();
+}
+
+function rewardDeleteMember(name) {
+  if (!confirm(`'${name}'을(를) 전체 목록에서 삭제할까요?`)) return;
+  rewardAllMembers = rewardAllMembers.filter(n => n !== name);
+  rewardNames = rewardNames.filter(n => n !== name);
+  Object.keys(zoneAssign).forEach(z => {
+    zoneAssign[z] = (zoneAssign[z] || []).filter(n => n !== name);
+  });
+  localStorage.setItem('rewardAllMembers', JSON.stringify(rewardAllMembers));
+  rewardSaveNames();
   rewardRender();
 }
 
@@ -1213,11 +1304,22 @@ function rewardDropToZone(e, zone) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
   if (!rDraggingName) return;
-  if (rDraggingFrom !== 'pool') {
-    zoneAssign[rDraggingFrom] = zoneAssign[rDraggingFrom].filter(n => n !== rDraggingName);
+  if (isMageZone(zone) && !rewardMages.has(rDraggingName)) {
+    rDraggingName = null; rDraggingFrom = null;
+    return;
   }
   if (!zoneAssign[zone]) zoneAssign[zone] = [];
-  if (!zoneAssign[zone].includes(rDraggingName)) zoneAssign[zone].push(rDraggingName);
+  const existing = zoneAssign[zone][0]; // 기존 자리에 있던 사람
+  // 드래그한 사람을 기존 자리에서 제거
+  if (rDraggingFrom !== 'pool') {
+    zoneAssign[rDraggingFrom] = zoneAssign[rDraggingFrom].filter(n => n !== rDraggingName);
+    // 기존 자리가 있으면 스왑: 빠진 자리에 밀려난 사람 배치
+    if (existing && existing !== rDraggingName) {
+      zoneAssign[rDraggingFrom] = [existing];
+    }
+  }
+  // 목적지에 한 명만 배치
+  zoneAssign[zone] = [rDraggingName];
   rDraggingName = null; rDraggingFrom = null;
   rewardRender();
 }
@@ -1233,100 +1335,176 @@ function rewardDropToPool(e) {
   rewardRender();
 }
 
-function zoneMST(nodes) {
-  // Kruskal's MST — 거리 계산 시 850:182 비율 보정
-  const R = 850 / 182;
-  const edges = [];
-  for (let i = 0; i < nodes.length; i++)
-    for (let j = i + 1; j < nodes.length; j++) {
-      const dx = nodes[i].cx - nodes[j].cx;
-      const dy = (nodes[i].cy - nodes[j].cy) * R;
-      edges.push([i, j, dx*dx + dy*dy]);
-    }
-  edges.sort((a, b) => a[2] - b[2]);
-  const par = nodes.map((_, i) => i);
-  const find = x => par[x] === x ? x : (par[x] = find(par[x]));
-  const mst = [];
-  for (const [i, j] of edges) {
-    if (find(i) !== find(j)) { par[find(i)] = find(j); mst.push([i, j]); }
-    if (mst.length === nodes.length - 1) break;
-  }
-  return mst;
-}
-
-function rewardMakeCard(name, from) {
+function rewardMakeCard(name, from, showStats = false) {
   const card = document.createElement('div');
   card.className = 'name-card';
-  card.textContent = name;
+  const topRow = document.createElement('div');
+  topRow.style.cssText = 'display:flex;align-items:center;gap:5px';
+  const nameSpan = document.createElement('span');
+  nameSpan.textContent = name;
+  topRow.appendChild(nameSpan);
+  if (from === 'pool' || showStats) {
+    const mageBtn = document.createElement('span');
+    const isMage = rewardMages.has(name);
+    mageBtn.textContent = '마법사';
+    mageBtn.style.cssText = `font-size:0.58rem;padding:1px 5px;border-radius:10px;cursor:pointer;user-select:none;transition:all 0.15s;${
+      isMage ? 'background:#3b2a7a;color:#c4a8ff;border:1px solid #7c5cbf' : 'background:transparent;color:var(--border);border:1px solid var(--border)'}`;
+    mageBtn.onmousedown = e => e.stopPropagation();
+    mageBtn.onclick = e => {
+      e.stopPropagation();
+      if (rewardMages.has(name)) rewardMages.delete(name);
+      else rewardMages.add(name);
+      localStorage.setItem('rewardMages', JSON.stringify([...rewardMages]));
+      rewardRender();
+    };
+    topRow.appendChild(mageBtn);
+  }
+  card.appendChild(topRow);
+  if (from === 'pool' || showStats) {
+    const h = rewardHistory[name];
+    if (h && Object.keys(h).length) {
+      const stat = document.createElement('span');
+      stat.className = 'name-stat-line';
+      stat.textContent = Object.entries(h)
+        .sort((a, b) => Number(b[0]) - Number(a[0]))
+        .map(([boxes, cnt]) => `${boxes}칸×${cnt}`)
+        .join(' · ');
+      card.appendChild(stat);
+    }
+  }
   card.draggable = true;
   card.ondragstart = e => rDragStart(e, name, from);
   card.ondragend = rDragEnd;
   return card;
 }
 
+function rewardAutoAssign() {
+  const config = ZONE_CONFIGS[rewardCount];
+  const mageZones  = config.filter(z =>  isMageZone(z.id)).sort((a, b) => b.boxes.length - a.boxes.length);
+  const normalZones = config.filter(z => !isMageZone(z.id)).sort((a, b) => b.boxes.length - a.boxes.length);
+
+  const score = n => Object.entries(rewardHistory[n] || {})
+    .reduce((s, [boxes, cnt]) => s + Number(boxes) * cnt, 0);
+
+  const mages   = rewardNames.filter(n =>  rewardMages.has(n)).sort((a, b) => score(a) - score(b));
+  const normals = rewardNames.filter(n => !rewardMages.has(n)).sort((a, b) => score(a) - score(b));
+
+  const newAssign = {};
+  config.forEach(({ id }) => { newAssign[id] = []; });
+
+  // 마법사 구역: 마법사 중 점수 낮은 순
+  mageZones.forEach((zone, i) => {
+    if (mages[i]) newAssign[zone.id] = [mages[i]];
+  });
+
+  // 나머지 구역: 비마법사 + 마법사 구역보다 많은 초과 마법사, 점수 낮은 순
+  const remaining = [...normals, ...mages.slice(mageZones.length)]
+    .sort((a, b) => score(a) - score(b));
+  normalZones.forEach((zone, i) => {
+    if (remaining[i]) newAssign[zone.id] = [remaining[i]];
+  });
+
+  zoneAssign = newAssign;
+  rewardRender();
+}
+
+function rewardResetHistory() {
+  if (!confirm('기록을 전체 초기화할까요?')) return;
+  rewardHistory = {};
+  localStorage.removeItem('rewardHistory');
+  rewardRender();
+}
+
+function rewardRecord() {
+  const config = ZONE_CONFIGS[rewardCount];
+  const boxCountMap = {};
+  config.forEach(({ id, boxes }) => { boxCountMap[String(id)] = boxes.length; });
+  let recorded = false;
+  Object.entries(zoneAssign).forEach(([zoneId, names]) => {
+    if (!names.length) return;
+    const cnt = boxCountMap[String(zoneId)];
+    if (!cnt) return;
+    names.forEach(name => {
+      if (!rewardHistory[name]) rewardHistory[name] = {};
+      const key = String(cnt);
+      rewardHistory[name][key] = (rewardHistory[name][key] || 0) + 1;
+      recorded = true;
+    });
+  });
+  localStorage.setItem('rewardHistory', JSON.stringify(rewardHistory));
+  if (recorded) rewardRender();
+}
+
 function rewardRender() {
   const config = ZONE_CONFIGS[rewardCount];
   const assigned = new Set(Object.values(zoneAssign).flat());
 
+  // 전체 목록
+  const toggleAllBtn = document.getElementById('reward-toggle-all-btn');
+  if (toggleAllBtn) {
+    const allIn = rewardAllMembers.length > 0 && rewardAllMembers.every(n => rewardNames.includes(n));
+    toggleAllBtn.textContent = allIn ? '전체미참' : '전체참가';
+  }
+  const memberList = document.getElementById('reward-all-members');
+  memberList.innerHTML = '';
+  rewardAllMembers.forEach(name => {
+    const row = document.createElement('div');
+    row.style.cssText = 'display:flex;align-items:center;gap:4px;padding:2px 6px;border-radius:4px;background:var(--bg-panel-inner)';
+    const nameSpan = document.createElement('span');
+    nameSpan.textContent = name;
+    nameSpan.style.cssText = 'flex:1;font-size:0.82rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap';
+    const isMage = rewardMages.has(name);
+    const mageBtn = document.createElement('button');
+    mageBtn.textContent = '마법사';
+    mageBtn.style.cssText = `font-size:0.58rem;padding:1px 5px;border-radius:8px;cursor:pointer;flex-shrink:0;${
+      isMage ? 'background:#3b2a7a;color:#c4a8ff;border:1px solid #7c5cbf' : 'background:transparent;color:var(--border);border:1px solid var(--border)'}`;
+    mageBtn.onclick = () => {
+      if (rewardMages.has(name)) rewardMages.delete(name);
+      else rewardMages.add(name);
+      localStorage.setItem('rewardMages', JSON.stringify([...rewardMages]));
+      rewardRender();
+    };
+    const isToday = rewardNames.includes(name);
+    const toggleBtn = document.createElement('button');
+    toggleBtn.textContent = isToday ? '참가 ✓' : '미참';
+    toggleBtn.style.cssText = `font-size:0.65rem;padding:1px 7px;border-radius:8px;cursor:pointer;border:none;flex-shrink:0;${
+      isToday ? 'background:var(--green);color:#1a0e08;font-weight:700' : 'background:var(--bg-input);color:var(--gray);border:1px solid var(--border)'}`;
+    toggleBtn.onclick = () => rewardToggleToday(name);
+    const delBtn = document.createElement('button');
+    delBtn.textContent = '×';
+    delBtn.title = '목록에서 삭제';
+    delBtn.style.cssText = 'font-size:0.75rem;padding:1px 5px;border-radius:4px;cursor:pointer;background:transparent;color:var(--gray);border:1px solid var(--border);flex-shrink:0';
+    delBtn.onclick = () => rewardDeleteMember(name);
+    row.append(nameSpan, mageBtn, toggleBtn, delBtn);
+    memberList.appendChild(row);
+  });
+
   // 풀
+  const todayCount = document.getElementById('reward-today-count');
+  if (todayCount) todayCount.textContent = `${rewardNames.length}명`;
   const pool = document.getElementById('reward-name-pool');
   pool.innerHTML = '';
   rewardNames.filter(n => !assigned.has(n)).forEach(n => pool.appendChild(rewardMakeCard(n, 'pool')));
 
-  // 지도 오버레이 - 상자 위치별 소형 사각형 + MST 연결선
+  // 지도 오버레이
   const mapEl = document.getElementById('reward-map-container');
-  mapEl.querySelectorAll('.rmap-box, .rmap-lines-svg').forEach(el => el.remove());
-
-  const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-  svgEl.classList.add('rmap-lines-svg');
-  svgEl.setAttribute('viewBox', '0 0 100 100');
-  svgEl.setAttribute('preserveAspectRatio', 'none');
-  svgEl.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none';
-  mapEl.appendChild(svgEl);
-
-  config.forEach(({ id, boxes }) => {
-    const color = ZONE_COLORS[(id - 1) % ZONE_COLORS.length];
+  mapEl.querySelectorAll('.rmap-zone').forEach(el => el.remove());
+  config.forEach(({ id, left, top, w, h }) => {
+    const zone = document.createElement('div');
+    zone.className = 'rmap-zone';
+    zone.dataset.zone = id;
+    zone.style.cssText = `left:${left}%;top:${top}%;width:${w}%;height:${h}%`;
     const names = zoneAssign[id] || [];
-    const label = names.length ? names.map(n => n.slice(0,3)).join('/') : '';
-    boxes.forEach(boxNum => {
-      const pos = BOX_POSITIONS[boxNum];
-      if (!pos) return;
-      const box = document.createElement('div');
-      box.className = 'rmap-box' + (names.length ? ' has-name' : '');
-      box.style.cssText = `left:${pos.cx}%;top:${pos.cy}%;color:${color};background:${color}28;border-color:${color}`;
-      box.textContent = label || boxNum;
-      box.title = `${id}구역 (${boxNum}번 상자)${names.length ? '\n' + names.join(', ') : ''}`;
-      box.ondragover = e => { e.preventDefault(); box.classList.add('drag-over'); };
-      box.ondragleave = () => box.classList.remove('drag-over');
-      box.ondrop = e => rewardDropToZone(e, id);
-      mapEl.appendChild(box);
-    });
-
-    // MST 엣지 - 마주보는 테두리 연장으로 연결
-    const nodes = boxes.map(b => BOX_POSITIONS[b]).filter(Boolean);
-    const mstEdges = zoneMST(nodes);
-    const HW = 2.5, HH = 11.75, R = 850 / 182;
-    mstEdges.forEach(([i, j]) => {
-      const a = nodes[i], b = nodes[j];
-      const dx = b.cx - a.cx, dy = (b.cy - a.cy) * R;
-      let pts;
-      if (Math.abs(dx) >= Math.abs(dy)) {
-        // 가로 연결: 오른쪽면 ↔ 왼쪽면
-        const s = dx > 0 ? 1 : -1;
-        pts = [[a.cx+s*HW, a.cy-HH],[b.cx-s*HW, b.cy-HH],[b.cx-s*HW, b.cy+HH],[a.cx+s*HW, a.cy+HH]];
-      } else {
-        // 세로 연결: 아래면 ↔ 윗면
-        const s = dy > 0 ? 1 : -1;
-        pts = [[a.cx-HW, a.cy+s*HH],[a.cx+HW, a.cy+s*HH],[b.cx+HW, b.cy-s*HH],[b.cx-HW, b.cy-s*HH]];
-      }
-      const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
-      poly.setAttribute('points', pts.map(p => p.join(',')).join(' '));
-      poly.setAttribute('fill', color + '28');
-      poly.setAttribute('stroke', color);
-      poly.setAttribute('stroke-width', '0.5');
-      poly.setAttribute('stroke-opacity', '0.6');
-      svgEl.appendChild(poly);
-    });
+    if (names.length) zone.classList.add('has-name');
+    const numDiv = document.createElement('div');
+    numDiv.className = 'rmap-zone-num';
+    numDiv.textContent = `${id}구역`;
+    zone.appendChild(numDiv);
+    names.forEach(n => zone.appendChild(rewardMakeCard(n, id)));
+    zone.ondragover = e => { e.preventDefault(); zone.classList.add('drag-over'); };
+    zone.ondragleave = () => zone.classList.remove('drag-over');
+    zone.ondrop = e => rewardDropToZone(e, id);
+    mapEl.appendChild(zone);
   });
 
   // 구역 슬롯
@@ -1342,9 +1520,15 @@ function rewardRender() {
     num.className = 'zone-slot-num';
     num.textContent = id;
     slot.appendChild(num);
+    if (isMageZone(id)) {
+      const tag = document.createElement('span');
+      tag.textContent = '마';
+      tag.style.cssText = 'font-size:0.58rem;padding:1px 4px;border-radius:8px;background:#3b2a7a;color:#c4a8ff;border:1px solid #7c5cbf';
+      slot.appendChild(tag);
+    }
     const namesDiv = document.createElement('div');
     namesDiv.className = 'zone-slot-names';
-    (zoneAssign[id] || []).forEach(n => namesDiv.appendChild(rewardMakeCard(n, id)));
+    (zoneAssign[id] || []).forEach(n => namesDiv.appendChild(rewardMakeCard(n, id, true)));
     slot.appendChild(namesDiv);
     slots.appendChild(slot);
   });
@@ -1396,6 +1580,29 @@ function rewardRender() {
 
 // 보상맵 배경 자동 로드
 document.getElementById('reward-map-container').style.backgroundImage = "url('./SVG.svg')";
+
+// 쓰레기통 초기화
+(function() {
+  const trash = document.getElementById('reward-trash');
+  trash.addEventListener('dragover', e => { e.preventDefault(); trash.classList.add('lid-open'); });
+  trash.addEventListener('dragleave', () => trash.classList.remove('lid-open'));
+  trash.addEventListener('drop', e => {
+    e.preventDefault();
+    trash.classList.remove('lid-open');
+    if (!rDraggingName) return;
+    rewardNames = rewardNames.filter(n => n !== rDraggingName);
+    if (rDraggingFrom !== 'pool') {
+      zoneAssign[rDraggingFrom] = (zoneAssign[rDraggingFrom] || []).filter(n => n !== rDraggingName);
+    }
+    rewardSaveNames();
+    rDraggingName = null; rDraggingFrom = null;
+    rewardRender();
+    setTimeout(() => {
+      trash.classList.add('digesting');
+      trash.addEventListener('animationend', () => trash.classList.remove('digesting'), { once: true });
+    }, 230);
+  });
+})();
 
 // 초기 구역 세팅
 rewardSetCount(6);
