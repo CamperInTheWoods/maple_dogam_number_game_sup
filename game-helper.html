@@ -1233,6 +1233,27 @@ function rewardDropToPool(e) {
   rewardRender();
 }
 
+function zoneMST(nodes) {
+  // Kruskal's MST — 거리 계산 시 850:182 비율 보정
+  const R = 850 / 182;
+  const edges = [];
+  for (let i = 0; i < nodes.length; i++)
+    for (let j = i + 1; j < nodes.length; j++) {
+      const dx = nodes[i].cx - nodes[j].cx;
+      const dy = (nodes[i].cy - nodes[j].cy) * R;
+      edges.push([i, j, dx*dx + dy*dy]);
+    }
+  edges.sort((a, b) => a[2] - b[2]);
+  const par = nodes.map((_, i) => i);
+  const find = x => par[x] === x ? x : (par[x] = find(par[x]));
+  const mst = [];
+  for (const [i, j] of edges) {
+    if (find(i) !== find(j)) { par[find(i)] = find(j); mst.push([i, j]); }
+    if (mst.length === nodes.length - 1) break;
+  }
+  return mst;
+}
+
 function rewardMakeCard(name, from) {
   const card = document.createElement('div');
   card.className = 'name-card';
@@ -1252,9 +1273,17 @@ function rewardRender() {
   pool.innerHTML = '';
   rewardNames.filter(n => !assigned.has(n)).forEach(n => pool.appendChild(rewardMakeCard(n, 'pool')));
 
-  // 지도 오버레이 - 상자 위치별 소형 사각형
+  // 지도 오버레이 - 상자 위치별 소형 사각형 + MST 연결선
   const mapEl = document.getElementById('reward-map-container');
-  mapEl.querySelectorAll('.rmap-box').forEach(el => el.remove());
+  mapEl.querySelectorAll('.rmap-box, .rmap-lines-svg').forEach(el => el.remove());
+
+  const svgEl = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svgEl.classList.add('rmap-lines-svg');
+  svgEl.setAttribute('viewBox', '0 0 100 100');
+  svgEl.setAttribute('preserveAspectRatio', 'none');
+  svgEl.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none';
+  mapEl.appendChild(svgEl);
+
   config.forEach(({ id, boxes }) => {
     const color = ZONE_COLORS[(id - 1) % ZONE_COLORS.length];
     const names = zoneAssign[id] || [];
@@ -1271,6 +1300,32 @@ function rewardRender() {
       box.ondragleave = () => box.classList.remove('drag-over');
       box.ondrop = e => rewardDropToZone(e, id);
       mapEl.appendChild(box);
+    });
+
+    // MST 엣지 - 마주보는 테두리 연장으로 연결
+    const nodes = boxes.map(b => BOX_POSITIONS[b]).filter(Boolean);
+    const mstEdges = zoneMST(nodes);
+    const HW = 2.5, HH = 11.75, R = 850 / 182;
+    mstEdges.forEach(([i, j]) => {
+      const a = nodes[i], b = nodes[j];
+      const dx = b.cx - a.cx, dy = (b.cy - a.cy) * R;
+      let pts;
+      if (Math.abs(dx) >= Math.abs(dy)) {
+        // 가로 연결: 오른쪽면 ↔ 왼쪽면
+        const s = dx > 0 ? 1 : -1;
+        pts = [[a.cx+s*HW, a.cy-HH],[b.cx-s*HW, b.cy-HH],[b.cx-s*HW, b.cy+HH],[a.cx+s*HW, a.cy+HH]];
+      } else {
+        // 세로 연결: 아래면 ↔ 윗면
+        const s = dy > 0 ? 1 : -1;
+        pts = [[a.cx-HW, a.cy+s*HH],[a.cx+HW, a.cy+s*HH],[b.cx+HW, b.cy-s*HH],[b.cx-HW, b.cy-s*HH]];
+      }
+      const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+      poly.setAttribute('points', pts.map(p => p.join(',')).join(' '));
+      poly.setAttribute('fill', color + '28');
+      poly.setAttribute('stroke', color);
+      poly.setAttribute('stroke-width', '0.5');
+      poly.setAttribute('stroke-opacity', '0.6');
+      svgEl.appendChild(poly);
     });
   });
 
