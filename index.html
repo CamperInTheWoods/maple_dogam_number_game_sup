@@ -4,30 +4,66 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>도감길드 길대 도우미</title>
+<script>
+(function(){
+  var t = localStorage.getItem('dogam-gildae-theme');
+  if (t === 'dark') {
+    document.documentElement.setAttribute('data-theme','dark');
+    document.documentElement.style.colorScheme = 'dark';
+  } else {
+    document.documentElement.style.colorScheme = 'light';
+  }
+})();
+</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'><path fill='%23c89432' stroke='%23000000' stroke-width='1.5' stroke-linejoin='round' d='M36 20.917c0-.688-2.895-.5-3.125-1s3.208-4.584 2.708-5.5-5.086 1.167-5.375.708c-.288-.458.292-3.5-.208-3.875s-5.25 4.916-5.917 4.292c-.666-.625 1.542-10.5 1.086-10.698-.456-.198-3.419 1.365-3.793 1.282C21.002 6.042 18.682 0 18 0s-3.002 6.042-3.376 6.125c-.374.083-3.337-1.48-3.793-1.282-.456.198 1.752 10.073 1.085 10.698C11.25 16.166 6.5 10.875 6 11.25s.08 3.417-.208 3.875c-.289.458-4.875-1.625-5.375-.708s2.939 5 2.708 5.5-3.125.312-3.125 1 8.438 5.235 9 5.771c.562.535-2.914 2.802-2.417 3.229.576.496 3.839-.83 10.417-.957V35c0 .553.448 1 1 1 .553 0 1-.447 1-1v-6.04c6.577.127 9.841 1.453 10.417.957.496-.428-2.979-2.694-2.417-3.229.562-.536 9-5.084 9-5.771z'/></svg>">
 <style>
 :root {
-  --brown:         #e8d8b4;
-  --gold:          #c89432;
-  --green:         #7dc97e;
-  --red:           #e06060;
-  --gray:          #a08868;
-  --dark:          #ecdcbe;
-  --bg-app:        #1a0e08;
-  --bg-panel:      #22140c;
-  --bg-panel-inner:#281810;
-  --bg-input:      #170c06;
-  --border:        #3a2418;
+  color-scheme: light;
+  --brown:          #6a4020;
+  --gold:           #a87020;
+  --green:          #2e7a3a;
+  --red:            #c03030;
+  --gray:           #7a5c40;
+  --dark:           #2a1a0e;
+  --bg-app:         #f4ede0;
+  --bg-panel:       #fdf6ec;
+  --bg-panel-inner: #f0e5d0;
+  --bg-input:       #e8dcc8;
+  --border:         #c8a878;
+  --shadow-card:    0 4px 16px rgba(100,70,40,.12);
+  --accent-bg:      #f5e8cc;
+  --accent-border:  #c8a050;
+  --drag-over-bg:   rgba(168,112,32,.12);
+  --text-on-accent: #1a0e08;
+}
+[data-theme="dark"] {
+  color-scheme: dark;
+  --brown:          #e8d8b4;
+  --gold:           #c89432;
+  --green:          #7dc97e;
+  --red:            #e06060;
+  --gray:           #a08868;
+  --dark:           #ecdcbe;
+  --bg-app:         #1a0e08;
+  --bg-panel:       #22140c;
+  --bg-panel-inner: #281810;
+  --bg-input:       #170c06;
+  --border:         #3a2418;
+  --shadow-card:    0 6px 18px rgba(0,0,0,.45);
+  --accent-bg:      #3a2408;
+  --accent-border:  #6a4818;
+  --drag-over-bg:   #2a1e08;
+  --text-on-accent: #1a0e08;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-input); }
-::-webkit-scrollbar-thumb { background: #3a2818; border-radius: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: var(--gold); }
 
-* { scrollbar-color: #3a2818 var(--bg-input); scrollbar-width: thin; }
+* { scrollbar-color: var(--border) var(--bg-input); scrollbar-width: thin; }
 
 body {
   font-family: 'Segoe UI', 'Noto Sans KR', sans-serif;
@@ -107,8 +143,8 @@ h1 {
 
 .fb { padding:2px 9px; border-radius:20px; font-size:0.78rem; font-weight:700; }
 .fb-ol   { background:#2d5a2d; color:var(--green); border:1px solid #3a7a3a; }
-.fb-teul { background:#4a3010; color:var(--gold);  border:1px solid #6a4818; }
-.fb-mol  { background:#2a1a10; color:var(--gray);  border:1px solid var(--border); }
+.fb-teul { background:var(--accent-bg); color:var(--gold);  border:1px solid var(--accent-border); }
+.fb-mol  { background:var(--bg-panel-inner); color:var(--gray);  border:1px solid var(--border); }
 
 .game-msg { text-align:center; font-size:1rem; font-weight:700; padding-top:8px; }
 .game-win  { color:var(--green); }
@@ -183,7 +219,7 @@ h1 {
 .submit-btn {
   width:100%; padding:11px;
   background: linear-gradient(135deg, var(--gold), #a87820);
-  color: var(--bg-app);
+  color: var(--text-on-accent);
   border:none; border-radius:9px;
   font-size:1rem; font-weight:700;
   cursor:pointer; transition:opacity 0.15s;
@@ -197,7 +233,7 @@ h1 {
 .undo-btn {
   flex:1; padding:8px;
   background:transparent; color:var(--gold);
-  border:1px solid #4a3010; border-radius:9px;
+  border:1px solid var(--accent-border); border-radius:9px;
   font-size:0.85rem; cursor:pointer;
   transition:all 0.15s;
 }
@@ -218,8 +254,8 @@ h1 {
   padding: 2px 8px; border-radius: 20px;
   font-size: 0.74rem; font-weight: 700;
 }
-.type-answer { background:#3a2a08; color:var(--gold); border:1px solid #6a4818; }
-.type-info   { background:#2a1a10; color:var(--gray); border:1px solid #4a2e1a; }
+.type-answer { background:var(--accent-bg); color:var(--gold); border:1px solid var(--accent-border); }
+.type-info   { background:var(--bg-panel-inner); color:var(--gray); border:1px solid var(--border); }
 
 .suggest-info { font-size:0.78rem; color:var(--gray); }
 
@@ -323,7 +359,7 @@ h1 {
 .reward-add-btn {
   padding: 5px 10px;
   background: linear-gradient(135deg, var(--gold), #a87820);
-  color: var(--bg-app); border: none; border-radius: 6px;
+  color: var(--text-on-accent); border: none; border-radius: 6px;
   font-size: 0.82rem; font-weight: 700;
   cursor: pointer; white-space: nowrap; transition: opacity 0.15s;
 }
@@ -335,7 +371,7 @@ h1 {
   border: 1px dashed var(--border); border-radius: 8px;
   transition: all 0.15s;
 }
-.name-pool.drag-over { border-color: var(--gold); background: #2a1e08; }
+.name-pool.drag-over { border-color: var(--gold); background: var(--drag-over-bg); }
 
 #reward-trash { display:inline-flex; align-items:center; margin-left:8px; cursor:default; vertical-align:middle; }
 #reward-trash svg { overflow:visible; }
@@ -372,7 +408,7 @@ h1 {
   border: 1px solid var(--border); background: var(--bg-input);
   margin-bottom: 5px; min-height: 36px; transition: all 0.15s;
 }
-.zone-slot.drag-over { border-color: var(--gold); background: #2a1e08; }
+.zone-slot.drag-over { border-color: var(--gold); background: var(--drag-over-bg); }
 .zone-slot-num { font-size: 0.72rem; color: var(--gray); width: 16px; flex-shrink: 0; font-weight: 700; }
 .zone-slot-names { display: flex; flex-wrap: wrap; gap: 4px; flex: 1; }
 
@@ -398,29 +434,29 @@ h1 {
 
 .auto-sim-btn {
   padding: 5px 12px;
-  background: #3a2408; color: var(--gold);
-  border: 1px solid #6a4818; border-radius: 7px;
+  background: var(--accent-bg); color: var(--gold);
+  border: 1px solid var(--accent-border); border-radius: 7px;
   font-size: 0.8rem; font-weight: 700;
   cursor: pointer; transition: all 0.15s;
   margin-top: 8px;
 }
-.auto-sim-btn:hover { background: var(--gold); color: var(--bg-app); }
+.auto-sim-btn:hover { background: var(--gold); color: var(--text-on-accent); }
 .auto-sim-btn:disabled { background: var(--bg-panel); color: var(--border); border-color:var(--bg-panel); cursor:not-allowed; }
 
 .apply-btn {
   padding:3px 10px;
-  background:#3a2408; color:var(--gold);
-  border:1px solid #6a4818; border-radius:6px;
+  background:var(--accent-bg); color:var(--gold);
+  border:1px solid var(--accent-border); border-radius:6px;
   font-size:0.75rem; cursor:pointer;
   transition:all 0.15s;
 }
-.apply-btn:hover { background:var(--gold); color:var(--bg-app); }
+.apply-btn:hover { background:var(--gold); color:var(--text-on-accent); }
 .apply-btn:disabled { background:var(--bg-panel); color:var(--border); border-color:var(--bg-panel); cursor:not-allowed; }
 
 /* ── Test Mode ── */
 .test-card {
   background: var(--bg-panel);
-  border: 1px solid #6a4818;
+  border: 1px solid var(--accent-border);
   border-radius: 12px;
   padding: 12px 16px;
   margin-bottom: 12px;
@@ -442,7 +478,7 @@ h1 {
   font-size: 0.75rem;
   color: var(--gold);
   background: transparent;
-  border: 1px solid #6a4818;
+  border: 1px solid var(--accent-border);
   border-radius: 6px;
   padding: 2px 8px;
   cursor: pointer;
@@ -455,7 +491,7 @@ h1 {
 .test-set-btn {
   padding: 5px 14px;
   background: linear-gradient(135deg, var(--gold), #a87820);
-  color: var(--bg-app);
+  color: var(--text-on-accent);
   border: none;
   border-radius: 7px;
   font-size: 0.82rem;
@@ -666,9 +702,67 @@ h1 {
 
 </div>
 
-<div class="version-label">똘레로_1.002.0</div>
+<div class="version-label">똘레로_1.003.0</div>
 
 <script>
+const PATCH_NOTES = [
+  { ver: '1.002.0', date: '26.05.21',
+    feat: ['전체 목록 / 오늘 참가 분리 관리', '마법사 전체목록에서도 설정 가능', '가나다 정렬, 전체 참가/미참 토글', '오늘 참가 인원수 표시', '참가 인원에 따라 구역 자동 연동'],
+    fix: [],
+  },
+  { ver: '1.001.0', date: '26.05.21',
+    feat: ['마법사 역할 설정 및 마법사 구역 제한', '자동배정 알고리즘 (누적 기록 기반 공평 분배)', '참가자 기록 통계 및 초기화', '구역 1인제 및 드래그 스왑'],
+    fix: [],
+  },
+  { ver: '1.000.0', date: '26.05.21',
+    feat: ['보상방 분배기 최초 배포', '구역 지도 SVG 자동 로드', '참가자 풀 관리 및 드래그 배정', '쓰레기통으로 참가자 제거'],
+    fix: [],
+  },
+];
+
+function openPatchNotes() {
+  let html = PATCH_NOTES.map(p => {
+    const feat = p.feat.map(f => `<li>✨ ${f}</li>`).join('');
+    const fix  = p.fix.map(f  => `<li>🔧 ${f}</li>`).join('');
+    return `<div style="margin-bottom:1rem">
+      <b style="color:var(--gold)">${p.ver}</b>
+      <span style="color:var(--gray);font-size:.8rem"> (${p.date})</span>
+      <ul style="margin:.3rem 0 0 1rem;padding:0;font-size:.88rem">${feat}${fix}</ul>
+    </div>`;
+  }).join('');
+  const overlay = document.createElement('div');
+  overlay.id = 'patch-overlay';
+  overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9800;display:flex;align-items:center;justify-content:center;';
+  overlay.innerHTML = `
+    <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;
+      padding:1.2rem 1.4rem;max-width:360px;width:90%;max-height:70vh;overflow-y:auto;
+      box-shadow:var(--shadow-card)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+        <b style="color:var(--dark)">패치노트</b>
+        <button onclick="document.getElementById('patch-overlay').remove()"
+          style="background:none;border:none;cursor:pointer;color:var(--gray);font-size:1.1rem">✕</button>
+      </div>
+      ${html}
+    </div>`;
+  overlay.addEventListener('click', e => { if (e.target === overlay) overlay.remove(); });
+  document.body.appendChild(overlay);
+}
+
+function toggleTheme() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (isDark) {
+    document.documentElement.removeAttribute('data-theme');
+    document.documentElement.style.colorScheme = 'light';
+    localStorage.setItem('dogam-gildae-theme', 'light');
+    document.getElementById('theme-toggle').textContent = '🌙';
+  } else {
+    document.documentElement.setAttribute('data-theme', 'dark');
+    document.documentElement.style.colorScheme = 'dark';
+    localStorage.setItem('dogam-gildae-theme', 'dark');
+    document.getElementById('theme-toggle').textContent = '☀️';
+  }
+}
+
 const EL = ['음', '술', '훈', '두'];
 const EC = ['sel-0','sel-1','sel-2','sel-3']; // selected class names
 
@@ -1612,6 +1706,28 @@ buildPicker();
 buildNumRows();
 buildTestPicker();
 renderSuggestion();
+
+// 테마 토글 버튼 초기 아이콘
+(function() {
+  const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+  const btn = document.getElementById('theme-toggle');
+  if (btn) btn.textContent = isDark ? '☀️' : '🌙';
+})();
 </script>
+
+<button id="patch-btn" onclick="openPatchNotes()"
+  style="position:fixed;bottom:10px;left:12px;width:22px;height:22px;
+    border-radius:50%;background:rgba(180,150,80,.18);
+    border:1px solid rgba(180,150,80,.35);color:rgba(180,150,80,.6);
+    font-size:.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;padding:0;transition:background .2s,color .2s;
+    z-index:9500;">i</button>
+<button id="theme-toggle" onclick="toggleTheme()"
+  style="position:fixed;bottom:10px;left:40px;width:22px;height:22px;
+    border-radius:50%;background:rgba(180,150,80,.18);
+    border:1px solid rgba(180,150,80,.35);color:rgba(180,150,80,.6);
+    font-size:.75rem;cursor:pointer;display:flex;align-items:center;
+    justify-content:center;padding:0;transition:background .2s,color .2s;
+    z-index:9500;">🌙</button>
 </body>
 </html>
