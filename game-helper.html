@@ -702,7 +702,7 @@ h1 {
 
 </div>
 
-<div class="version-label">똘레로_1.003.0</div>
+<div class="version-label">똘레로_1.004.0</div>
 
 <script>
 const PATCH_NOTES = [
@@ -1279,10 +1279,26 @@ if (!rewardAllMembers) {
 }
 let rewardHistory = JSON.parse(localStorage.getItem('rewardHistory') || '{}');
 let rewardMages = new Set(JSON.parse(localStorage.getItem('rewardMages') || '[]'));
+let rewardThieves = new Set(JSON.parse(localStorage.getItem('rewardThieves') || '[]'));
 
 function isMageZone(zoneId) {
   const zone = ZONE_CONFIGS[rewardCount].find(z => z.id === Number(zoneId));
   return zone ? zone.boxes.some(b => b >= 9 && b <= 14) : false;
+}
+
+// 마법사/도적 둘 다 입장 가능한 하이브리드 구역: 보통 4번, 9인일 땐 5번(이때 4번은 마법사 전용)
+function zoneAccess(zoneId) {
+  const id = Number(zoneId);
+  const hybridId = (rewardCount === 9) ? 5 : 4;
+  if (id === hybridId) return 'hybrid';
+  if (isMageZone(zoneId)) return 'mage';
+  return 'open';
+}
+function canEnterZone(zoneId, name) {
+  const access = zoneAccess(zoneId);
+  if (access === 'mage') return rewardMages.has(name);
+  if (access === 'hybrid') return rewardMages.has(name) || rewardThieves.has(name);
+  return true;
 }
 let zoneAssign = {};
 let rDraggingName = null;
@@ -1324,6 +1340,30 @@ function rewardAddName() {
   rewardAllMembers.push(name);
   localStorage.setItem('rewardAllMembers', JSON.stringify(rewardAllMembers));
   input.value = '';
+  rewardRender();
+}
+
+// 마법사/도적은 동시에 될 수 없는 직업
+function rewardToggleMage(name) {
+  if (rewardMages.has(name)) {
+    rewardMages.delete(name);
+  } else {
+    rewardMages.add(name);
+    rewardThieves.delete(name);
+    localStorage.setItem('rewardThieves', JSON.stringify([...rewardThieves]));
+  }
+  localStorage.setItem('rewardMages', JSON.stringify([...rewardMages]));
+  rewardRender();
+}
+function rewardToggleThief(name) {
+  if (rewardThieves.has(name)) {
+    rewardThieves.delete(name);
+  } else {
+    rewardThieves.add(name);
+    rewardMages.delete(name);
+    localStorage.setItem('rewardMages', JSON.stringify([...rewardMages]));
+  }
+  localStorage.setItem('rewardThieves', JSON.stringify([...rewardThieves]));
   rewardRender();
 }
 
@@ -1398,7 +1438,7 @@ function rewardDropToZone(e, zone) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
   if (!rDraggingName) return;
-  if (isMageZone(zone) && !rewardMages.has(rDraggingName)) {
+  if (!canEnterZone(zone, rDraggingName)) {
     rDraggingName = null; rDraggingFrom = null;
     return;
   }
@@ -1444,14 +1484,17 @@ function rewardMakeCard(name, from, showStats = false) {
     mageBtn.style.cssText = `font-size:0.58rem;padding:1px 5px;border-radius:10px;cursor:pointer;user-select:none;transition:all 0.15s;${
       isMage ? 'background:#3b2a7a;color:#c4a8ff;border:1px solid #7c5cbf' : 'background:transparent;color:var(--border);border:1px solid var(--border)'}`;
     mageBtn.onmousedown = e => e.stopPropagation();
-    mageBtn.onclick = e => {
-      e.stopPropagation();
-      if (rewardMages.has(name)) rewardMages.delete(name);
-      else rewardMages.add(name);
-      localStorage.setItem('rewardMages', JSON.stringify([...rewardMages]));
-      rewardRender();
-    };
+    mageBtn.onclick = e => { e.stopPropagation(); rewardToggleMage(name); };
     topRow.appendChild(mageBtn);
+
+    const thiefBtn = document.createElement('span');
+    const isThief = rewardThieves.has(name);
+    thiefBtn.textContent = '도적';
+    thiefBtn.style.cssText = `font-size:0.58rem;padding:1px 5px;border-radius:10px;cursor:pointer;user-select:none;transition:all 0.15s;${
+      isThief ? 'background:#3a4452;color:#a8bcd0;border:1px solid #5a7088' : 'background:transparent;color:var(--border);border:1px solid var(--border)'}`;
+    thiefBtn.onmousedown = e => e.stopPropagation();
+    thiefBtn.onclick = e => { e.stopPropagation(); rewardToggleThief(name); };
+    topRow.appendChild(thiefBtn);
   }
   card.appendChild(topRow);
   if (from === 'pool' || showStats) {
@@ -1474,27 +1517,29 @@ function rewardMakeCard(name, from, showStats = false) {
 
 function rewardAutoAssign() {
   const config = ZONE_CONFIGS[rewardCount];
-  const mageZones  = config.filter(z =>  isMageZone(z.id)).sort((a, b) => b.boxes.length - a.boxes.length);
-  const normalZones = config.filter(z => !isMageZone(z.id)).sort((a, b) => b.boxes.length - a.boxes.length);
-
   const score = n => Object.entries(rewardHistory[n] || {})
     .reduce((s, [boxes, cnt]) => s + Number(boxes) * cnt, 0);
 
-  const mages   = rewardNames.filter(n =>  rewardMages.has(n)).sort((a, b) => score(a) - score(b));
-  const normals = rewardNames.filter(n => !rewardMages.has(n)).sort((a, b) => score(a) - score(b));
+  // 제한 구역(마법사 전용 / 4번 하이브리드) 먼저, 그 외는 나중에
+  const restrictedZones = config.filter(z => zoneAccess(z.id) !== 'open').sort((a, b) => b.boxes.length - a.boxes.length);
+  const openZones = config.filter(z => zoneAccess(z.id) === 'open').sort((a, b) => b.boxes.length - a.boxes.length);
 
+  const remainingPeople = new Set(rewardNames);
   const newAssign = {};
   config.forEach(({ id }) => { newAssign[id] = []; });
 
-  // 마법사 구역: 마법사 중 점수 낮은 순
-  mageZones.forEach((zone, i) => {
-    if (mages[i]) newAssign[zone.id] = [mages[i]];
+  restrictedZones.forEach(zone => {
+    const candidates = [...remainingPeople]
+      .filter(n => canEnterZone(zone.id, n))
+      .sort((a, b) => score(a) - score(b));
+    if (candidates.length) {
+      newAssign[zone.id] = [candidates[0]];
+      remainingPeople.delete(candidates[0]);
+    }
   });
 
-  // 나머지 구역: 비마법사 + 마법사 구역보다 많은 초과 마법사, 점수 낮은 순
-  const remaining = [...normals, ...mages.slice(mageZones.length)]
-    .sort((a, b) => score(a) - score(b));
-  normalZones.forEach((zone, i) => {
+  const remaining = [...remainingPeople].sort((a, b) => score(a) - score(b));
+  openZones.forEach((zone, i) => {
     if (remaining[i]) newAssign[zone.id] = [remaining[i]];
   });
 
@@ -1552,12 +1597,13 @@ function rewardRender() {
     mageBtn.textContent = '마법사';
     mageBtn.style.cssText = `font-size:0.58rem;padding:1px 5px;border-radius:8px;cursor:pointer;flex-shrink:0;${
       isMage ? 'background:#3b2a7a;color:#c4a8ff;border:1px solid #7c5cbf' : 'background:transparent;color:var(--border);border:1px solid var(--border)'}`;
-    mageBtn.onclick = () => {
-      if (rewardMages.has(name)) rewardMages.delete(name);
-      else rewardMages.add(name);
-      localStorage.setItem('rewardMages', JSON.stringify([...rewardMages]));
-      rewardRender();
-    };
+    mageBtn.onclick = () => rewardToggleMage(name);
+    const isThief = rewardThieves.has(name);
+    const thiefBtn = document.createElement('button');
+    thiefBtn.textContent = '도적';
+    thiefBtn.style.cssText = `font-size:0.58rem;padding:1px 5px;border-radius:8px;cursor:pointer;flex-shrink:0;${
+      isThief ? 'background:#3a4452;color:#a8bcd0;border:1px solid #5a7088' : 'background:transparent;color:var(--border);border:1px solid var(--border)'}`;
+    thiefBtn.onclick = () => rewardToggleThief(name);
     const isToday = rewardNames.includes(name);
     const toggleBtn = document.createElement('button');
     toggleBtn.textContent = isToday ? '참가 ✓' : '미참';
@@ -1569,7 +1615,7 @@ function rewardRender() {
     delBtn.title = '목록에서 삭제';
     delBtn.style.cssText = 'font-size:0.75rem;padding:1px 5px;border-radius:4px;cursor:pointer;background:transparent;color:var(--gray);border:1px solid var(--border);flex-shrink:0';
     delBtn.onclick = () => rewardDeleteMember(name);
-    row.append(nameSpan, mageBtn, toggleBtn, delBtn);
+    row.append(nameSpan, mageBtn, thiefBtn, toggleBtn, delBtn);
     memberList.appendChild(row);
   });
 
@@ -1614,7 +1660,19 @@ function rewardRender() {
     num.className = 'zone-slot-num';
     num.textContent = id;
     slot.appendChild(num);
-    if (isMageZone(id)) {
+    const access = zoneAccess(id);
+    if (access === 'hybrid') {
+      const tag = document.createElement('span');
+      tag.style.cssText = 'display:inline-flex;border-radius:8px;overflow:hidden;border:1px solid var(--border)';
+      const half1 = document.createElement('span');
+      half1.textContent = '마';
+      half1.style.cssText = 'font-size:0.58rem;padding:1px 4px;background:#3b2a7a;color:#c4a8ff';
+      const half2 = document.createElement('span');
+      half2.textContent = '도';
+      half2.style.cssText = 'font-size:0.58rem;padding:1px 4px;background:#3a4452;color:#a8bcd0';
+      tag.append(half1, half2);
+      slot.appendChild(tag);
+    } else if (access === 'mage') {
       const tag = document.createElement('span');
       tag.textContent = '마';
       tag.style.cssText = 'font-size:0.58rem;padding:1px 4px;border-radius:8px;background:#3b2a7a;color:#c4a8ff;border:1px solid #7c5cbf';
