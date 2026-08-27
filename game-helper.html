@@ -258,6 +258,12 @@ h1 {
 .type-info   { background:var(--bg-panel-inner); color:var(--gray); border:1px solid var(--border); }
 
 .suggest-info { font-size:0.78rem; color:var(--gray); }
+.auto-fill-note {
+  margin-left:6px; padding:2px 7px; border-radius:6px;
+  background:var(--accent-bg); color:var(--gold);
+  border:1px solid var(--accent-border);
+  font-size:0.65rem; font-weight:600; vertical-align:middle;
+}
 
 /* ── Tabs ── */
 .tab-bar {
@@ -443,16 +449,6 @@ h1 {
 .auto-sim-btn:hover { background: var(--gold); color: var(--text-on-accent); }
 .auto-sim-btn:disabled { background: var(--bg-panel); color: var(--border); border-color:var(--bg-panel); cursor:not-allowed; }
 
-.apply-btn {
-  padding:3px 10px;
-  background:var(--accent-bg); color:var(--gold);
-  border:1px solid var(--accent-border); border-radius:6px;
-  font-size:0.75rem; cursor:pointer;
-  transition:all 0.15s;
-}
-.apply-btn:hover { background:var(--gold); color:var(--text-on-accent); }
-.apply-btn:disabled { background:var(--bg-panel); color:var(--border); border-color:var(--bg-panel); cursor:not-allowed; }
-
 /* ── Test Mode ── */
 .test-card {
   background: var(--bg-panel);
@@ -578,10 +574,7 @@ h1 {
 
   <!-- Suggestion -->
   <div class="card">
-    <div class="card-title" style="display:flex;align-items:center;justify-content:space-between;">
-      <span>추천 다음 추측</span>
-      <button class="apply-btn" id="apply-btn" onclick="applyRecommendation()">↓ 입력칸에 넣기</button>
-    </div>
+    <div class="card-title">추천 다음 추측 <span class="auto-fill-note">자동 입력됨</span></div>
     <div class="suggest-row" id="suggest-row">
       <span style="color:var(--gray);font-size:0.85rem">계산 중...</span>
     </div>
@@ -702,10 +695,14 @@ h1 {
 
 </div>
 
-<div class="version-label">똘레로_1.004.0</div>
+<div class="version-label">똘레로_1.005.0</div>
 
 <script>
 const PATCH_NOTES = [
+  { ver: '1.005.0', date: '26.08.27',
+    feat: ['추천 추측이 내 추측 입력칸에 자동으로 채워짐 (넣기 버튼 삭제)', '게임 시작 시 첫 추측 훈 훈 두 두 고정'],
+    fix: [],
+  },
   { ver: '1.002.0', date: '26.05.21',
     feat: ['전체 목록 / 오늘 참가 분리 관리', '마법사 전체목록에서도 설정 가능', '가나다 정렬, 전체 참가/미참 토글', '오늘 참가 인원수 표시', '참가 인원에 따라 구역 자동 연동'],
     fix: [],
@@ -765,6 +762,9 @@ function toggleTheme() {
 
 const EL = ['음', '술', '훈', '두'];
 const EC = ['sel-0','sel-1','sel-2','sel-3']; // selected class names
+
+// 첫 추측은 훈 훈 두 두 고정
+const FIRST_GUESS = [2,2,3,3];
 
 // Generate all 4^4 = 256 codes
 const ALL = [];
@@ -889,9 +889,8 @@ async function autoSimulate() {
 
   // Step through until solved or 7 attempts
   while (!over) {
-    // Apply recommendation
+    // 추천은 renderSuggestion이 이미 입력칸에 넣어둠
     if (!lastRecommendation) break;
-    lastRecommendation.forEach((e, pos) => pick(pos, e));
 
     // Calculate feedback from secret
     const f = feedback(sel, testSecret);
@@ -1035,8 +1034,9 @@ function renderSuggestion() {
     return;
   }
 
-  const g = bestGuess(poss);
+  const g = (used === 0) ? FIRST_GUESS.slice() : bestGuess(poss);
   lastRecommendation = g;
+  g.forEach((e, pos) => pick(pos, e));   // 입력칸에 바로 반영
   g.forEach(e => row.appendChild(elBadge(e)));
 
   const inPoss = poss.some(p=>p.join()===g.join());
@@ -1050,11 +1050,6 @@ function renderSuggestion() {
   info.className = 'suggest-info';
   info.textContent = `${poss.length}가지 중 최적`;
   row.appendChild(info);
-}
-
-function applyRecommendation() {
-  if (!lastRecommendation) return;
-  lastRecommendation.forEach((e, pos) => pick(pos, e));
 }
 
 function renderHistory() {
