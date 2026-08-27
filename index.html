@@ -19,41 +19,53 @@
 <style>
 :root {
   color-scheme: light;
-  --brown:          #6a4020;
-  --gold:           #a87020;
-  --green:          #2e7a3a;
-  --red:            #c03030;
-  --gray:           #7a5c40;
-  --dark:           #2a1a0e;
-  --bg-app:         #f4ede0;
-  --bg-panel:       #fdf6ec;
-  --bg-panel-inner: #f0e5d0;
-  --bg-input:       #e8dcc8;
-  --border:         #c8a878;
-  --shadow-card:    0 4px 16px rgba(100,70,40,.12);
-  --accent-bg:      #f5e8cc;
-  --accent-border:  #c8a050;
-  --drag-over-bg:   rgba(168,112,32,.12);
-  --text-on-accent: #1a0e08;
+  --brown:          #16181c;
+  --gold:           #101418;
+  --gold-2:         #2b3138;
+  --green:          #1b7a38;
+  --red:            #c62828;
+  --gray:           #6b7280;
+  --dark:           #16181c;
+  --bg-app:         #eceef1;
+  --bg-panel:       #ffffff;
+  --bg-panel-inner: #f2f4f7;
+  --bg-input:       #e3e6ea;
+  --border:         #d2d6dc;
+  --shadow-card:    0 2px 10px rgba(20,24,30,.08);
+  --accent-bg:      #e4e7ec;
+  --accent-border:  #b4bac2;
+  --drag-over-bg:   rgba(20,24,30,.07);
+  --text-on-accent: #ffffff;
+  --ol-bg:          #dcf0e0;
+  --ol-border:      #9dcfa8;
+  --teul-bg:        #e4e7ec;
+  --gold-shadow:    rgba(16,20,24,.22);
+  --gold-faint:     rgba(16,20,24,.30);
 }
 [data-theme="dark"] {
   color-scheme: dark;
-  --brown:          #e8d8b4;
-  --gold:           #c89432;
-  --green:          #7dc97e;
-  --red:            #e06060;
-  --gray:           #a08868;
-  --dark:           #ecdcbe;
-  --bg-app:         #1a0e08;
-  --bg-panel:       #22140c;
-  --bg-panel-inner: #281810;
-  --bg-input:       #170c06;
-  --border:         #3a2418;
-  --shadow-card:    0 6px 18px rgba(0,0,0,.45);
-  --accent-bg:      #3a2408;
-  --accent-border:  #6a4818;
-  --drag-over-bg:   #2a1e08;
-  --text-on-accent: #1a0e08;
+  --brown:          #e7e9ec;
+  --gold:           #dfe3e8;
+  --gold-2:         #9aa2ab;
+  --green:          #6fcf80;
+  --red:            #e57373;
+  --gray:           #969ba3;
+  --dark:           #e7e9ec;
+  --bg-app:         #131519;
+  --bg-panel:       #1b1e23;
+  --bg-panel-inner: #23272d;
+  --bg-input:       #0f1114;
+  --border:         #333941;
+  --shadow-card:    0 6px 18px rgba(0,0,0,.5);
+  --accent-bg:      #2c3138;
+  --accent-border:  #4e555e;
+  --drag-over-bg:   rgba(255,255,255,.08);
+  --text-on-accent: #131519;
+  --ol-bg:          #1e3324;
+  --ol-border:      #37613f;
+  --teul-bg:        #2c3138;
+  --gold-shadow:    rgba(0,0,0,.45);
+  --gold-faint:     rgba(223,227,232,.30);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -142,7 +154,7 @@ h1 {
 .h-fbs { display:flex; gap:4px; margin-left:8px; }
 
 .fb { padding:2px 9px; border-radius:20px; font-size:0.78rem; font-weight:700; }
-.fb-ol   { background:#2d5a2d; color:var(--green); border:1px solid #3a7a3a; }
+.fb-ol   { background:var(--ol-bg); color:var(--green); border:1px solid var(--ol-border); }
 .fb-teul { background:var(--accent-bg); color:var(--gold);  border:1px solid var(--accent-border); }
 .fb-mol  { background:var(--bg-panel-inner); color:var(--gray);  border:1px solid var(--border); }
 
@@ -211,20 +223,20 @@ h1 {
   transition: all 0.1s;
 }
 .num-btn:hover { border-color:var(--gray); color:var(--brown); }
-.num-btn.active-ol   { background:#2d5a2d; border-color:var(--green); color:var(--green); }
-.num-btn.active-teul { background:#4a3010; border-color:var(--gold);  color:var(--gold); }
+.num-btn.active-ol   { background:var(--ol-bg); border-color:var(--green); color:var(--green); }
+.num-btn.active-teul { background:var(--teul-bg); border-color:var(--gold);  color:var(--gold); }
 .mol-display { font-size:1rem; font-weight:700; color:var(--gray); width:36px; text-align:center; }
 .mol-eq  { font-size:0.75rem; color:var(--gray); }
 
 .submit-btn {
   width:100%; padding:11px;
-  background: linear-gradient(135deg, var(--gold), #a87820);
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
   color: var(--text-on-accent);
   border:none; border-radius:9px;
   font-size:1rem; font-weight:700;
   cursor:pointer; transition:opacity 0.15s;
   margin-bottom:8px;
-  box-shadow: 0 2px 8px rgba(168,120,32,.3);
+  box-shadow: 0 2px 8px var(--gold-shadow);
 }
 .submit-btn:hover { opacity: 0.88; }
 .submit-btn:disabled { background:var(--bg-panel); color:var(--border); box-shadow:none; cursor:not-allowed; }
@@ -250,21 +262,20 @@ h1 {
 
 .no-sol { color:var(--red); font-size:0.85rem; }
 
-.guess-type-badge {
-  padding: 2px 8px; border-radius: 20px;
-  font-size: 0.74rem; font-weight: 700;
-}
-.type-answer { background:var(--accent-bg); color:var(--gold); border:1px solid var(--accent-border); }
-.type-info   { background:var(--bg-panel-inner); color:var(--gray); border:1px solid var(--border); }
-
 .suggest-info { font-size:0.78rem; color:var(--gray); }
-.auto-fill-note {
-  margin-left:6px; padding:2px 7px; border-radius:6px;
-  background:var(--accent-bg); color:var(--gold);
-  border:1px solid var(--accent-border);
-  font-size:0.65rem; font-weight:600; vertical-align:middle;
+.needs-row { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; }
+.need-cell {
+  display:flex; flex-direction:column; align-items:center; gap:5px;
+  padding:9px 4px; border-radius:8px;
+  background:var(--bg-panel-inner); border:1px solid var(--border);
+  transition:all 0.15s;
 }
-
+.need-cell.need-fixed { background:var(--accent-bg); border-color:var(--accent-border); }
+.need-cell.need-none  { opacity:0.4; }
+.need-max { font-size:1.2rem; font-weight:800; color:var(--dark); line-height:1; }
+.need-max em { font-size:0.68rem; font-weight:600; font-style:normal; margin-left:1px; }
+.need-sub { font-size:0.62rem; color:var(--gray); min-height:0.95em; }
+.needs-row .no-sol { grid-column:1 / -1; }
 /* ── Tabs ── */
 .tab-bar {
   display: flex;
@@ -364,7 +375,7 @@ h1 {
 .reward-name-input:focus { border-color: var(--gold); }
 .reward-add-btn {
   padding: 5px 10px;
-  background: linear-gradient(135deg, var(--gold), #a87820);
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
   color: var(--text-on-accent); border: none; border-radius: 6px;
   font-size: 0.82rem; font-weight: 700;
   cursor: pointer; white-space: nowrap; transition: opacity 0.15s;
@@ -432,7 +443,7 @@ h1 {
   position: fixed;
   bottom: 10px; right: 12px;
   font-size: .6rem;
-  color: rgba(200,148,50,.35);
+  color: var(--gold-faint);
   cursor: default;
   user-select: none;
   letter-spacing: .03em;
@@ -486,7 +497,7 @@ h1 {
 .test-label { font-size: 0.8rem; color: var(--gold); }
 .test-set-btn {
   padding: 5px 14px;
-  background: linear-gradient(135deg, var(--gold), #a87820);
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
   color: var(--text-on-accent);
   border: none;
   border-radius: 7px;
@@ -534,23 +545,6 @@ h1 {
   </div>
 
   <div class="tab-content active" id="tab-gildae">
-  <!-- Test Mode -->
-  <div class="test-card">
-    <div class="test-header" onclick="toggleTestPanel()">
-      <span class="test-title">🧪 테스트 모드</span>
-      <button class="test-toggle" id="test-toggle-btn">열기</button>
-    </div>
-    <div class="test-body" id="test-body" style="display:none">
-      <div class="test-row">
-        <span class="test-label">정답 설정:</span>
-        <div class="test-picker" id="test-picker"></div>
-        <button class="test-set-btn" onclick="activateTestMode()">적용</button>
-      </div>
-      <div id="test-active-info"></div>
-      <button class="auto-sim-btn" id="auto-sim-btn" onclick="autoSimulate()" disabled>▶ 자동 시뮬레이션</button>
-    </div>
-  </div>
-
   <div class="stats">
     <div class="stat">
       <div class="stat-val" id="stat-left">7</div>
@@ -572,12 +566,16 @@ h1 {
     <div class="history-empty" id="hist-empty">아직 입력된 시도가 없습니다</div>
   </div>
 
-  <!-- Suggestion -->
+  <!-- 게임 종료 시 남은 후보 -->
+  <div class="card" id="endgame-card" style="display:none">
+    <div class="card-title">남은 가능한 답</div>
+    <div class="suggest-row" id="suggest-row"></div>
+  </div>
+
+  <!-- 아이템 그만캐! -->
   <div class="card">
-    <div class="card-title">추천 다음 추측 <span class="auto-fill-note">자동 입력됨</span></div>
-    <div class="suggest-row" id="suggest-row">
-      <span style="color:var(--gray);font-size:0.85rem">계산 중...</span>
-    </div>
+    <div class="card-title">아이템 그만캐!</div>
+    <div class="needs-row" id="needs-row"></div>
   </div>
 
   <!-- Input -->
@@ -606,6 +604,23 @@ h1 {
     <div class="btn-row">
       <button class="undo-btn" id="undo-btn" onclick="undoLast()" disabled>마지막 취소</button>
       <button class="reset-btn" onclick="resetGame()">처음부터 다시</button>
+    </div>
+  </div>
+
+  <!-- Test Mode -->
+  <div class="test-card">
+    <div class="test-header" onclick="toggleTestPanel()">
+      <span class="test-title">🧪 테스트 모드</span>
+      <button class="test-toggle" id="test-toggle-btn">열기</button>
+    </div>
+    <div class="test-body" id="test-body" style="display:none">
+      <div class="test-row">
+        <span class="test-label">정답 설정:</span>
+        <div class="test-picker" id="test-picker"></div>
+        <button class="test-set-btn" onclick="activateTestMode()">적용</button>
+      </div>
+      <div id="test-active-info"></div>
+      <button class="auto-sim-btn" id="auto-sim-btn" onclick="autoSimulate()" disabled>▶ 자동 시뮬레이션</button>
     </div>
   </div>
   </div><!-- /tab-gildae -->
@@ -641,13 +656,13 @@ h1 {
             <span id="reward-trash">
               <svg width="20" height="24" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <!-- 몸통 -->
-                <rect x="3" y="11" width="18" height="16" rx="2" fill="#a08868" opacity="0.5"/>
-                <line x1="9" y1="14" x2="9" y2="24" stroke="#a08868" stroke-width="1.5" opacity="0.5"/>
-                <line x1="15" y1="14" x2="15" y2="24" stroke="#a08868" stroke-width="1.5" opacity="0.5"/>
+                <rect x="3" y="11" width="18" height="16" rx="2" fill="var(--gray)" opacity="0.5"/>
+                <line x1="9" y1="14" x2="9" y2="24" stroke="var(--gray)" stroke-width="1.5" opacity="0.5"/>
+                <line x1="15" y1="14" x2="15" y2="24" stroke="var(--gray)" stroke-width="1.5" opacity="0.5"/>
                 <!-- 뚜껑 (힌지: 오른쪽 끝) -->
                 <g class="trash-lid-group">
-                  <rect x="2" y="8" width="20" height="3.5" rx="1.5" fill="#a08868" opacity="0.7"/>
-                  <rect x="9" y="4.5" width="6" height="3.5" rx="1.5" fill="#a08868" opacity="0.7"/>
+                  <rect x="2" y="8" width="20" height="3.5" rx="1.5" fill="var(--gray)" opacity="0.7"/>
+                  <rect x="9" y="4.5" width="6" height="3.5" rx="1.5" fill="var(--gray)" opacity="0.7"/>
                 </g>
               </svg>
             </span>
@@ -675,7 +690,7 @@ h1 {
         <div class="card">
           <div class="card-title">자리 배정
             <button onclick="rewardAutoAssign()" style="margin-left:8px;padding:2px 8px;font-size:0.7rem;background:#3b2a7a;color:#c4a8ff;border:1px solid #7c5cbf;border-radius:4px;cursor:pointer;font-weight:700">자동배정</button>
-            <button onclick="rewardRecord()" style="margin-left:4px;padding:2px 8px;font-size:0.7rem;background:var(--gold);color:#1a0e08;border:none;border-radius:4px;cursor:pointer;font-weight:700">기록</button>
+            <button onclick="rewardRecord()" style="margin-left:4px;padding:2px 8px;font-size:0.7rem;background:var(--gold);color:var(--text-on-accent);border:none;border-radius:4px;cursor:pointer;font-weight:700">기록</button>
             <button onclick="rewardResetHistory()" style="margin-left:4px;padding:2px 8px;font-size:0.7rem;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:4px;cursor:pointer">초기화</button>
           </div>
           <div id="reward-slots"></div>
@@ -695,10 +710,22 @@ h1 {
 
 </div>
 
-<div class="version-label">똘레로_1.005.0</div>
+<div class="version-label">똘레로_1.008.0</div>
 
 <script>
 const PATCH_NOTES = [
+  { ver: '1.008.0', date: '26.08.27',
+    feat: ['라이트 모드 테마 변경 - 라이트 그레이 배경 + 블랙 텍스트', '다크 모드에서 갈색 기운 제거 - 중성 차콜 계열로 변경', '금색 악센트를 테마에 맞는 무채색으로 변경'],
+    fix: [],
+  },
+  { ver: '1.007.0', date: '26.08.27',
+    feat: ['"아이템 그만캐!" 패널 - 음·술 필요 최대 개수만 표시 (훈·두는 항상 4개 준비)', '추천 다음 추측 카드 제거 (어차피 입력칸에 자동으로 채워짐)', '게임 종료 시 남은 후보는 별도 카드로 표시'],
+    fix: [],
+  },
+  { ver: '1.006.0', date: '26.08.27',
+    feat: ['원소별 필요 개수 패널 추가 (남은 후보 기준 최소~최대, 매 시퀀스 갱신)', '테스트 모드 카드를 화면 맨 아래로 이동'],
+    fix: [],
+  },
   { ver: '1.005.0', date: '26.08.27',
     feat: ['추천 추측이 내 추측 입력칸에 자동으로 채워짐 (넣기 버튼 삭제)', '게임 시작 시 첫 추측 훈 훈 두 두 고정'],
     fix: [],
@@ -1022,34 +1049,14 @@ function setVal(type, n) {
   updateFbDisplay();
 }
 
+// 최적 추측을 계산해서 입력칸에 바로 채워둔다 (화면에 따로 표시하지 않음)
 function renderSuggestion() {
-  const row = document.getElementById('suggest-row');
-  row.innerHTML = '';
-
-  if (poss.length === 0) {
-    const s = document.createElement('span');
-    s.className = 'no-sol';
-    s.textContent = '가능한 경우가 없습니다. 입력 내용을 확인하고 처음부터 다시 시작하세요.';
-    row.appendChild(s);
-    return;
-  }
+  document.getElementById('endgame-card').style.display = 'none';
+  if (poss.length === 0) return;
 
   const g = (used === 0) ? FIRST_GUESS.slice() : bestGuess(poss);
   lastRecommendation = g;
-  g.forEach((e, pos) => pick(pos, e));   // 입력칸에 바로 반영
-  g.forEach(e => row.appendChild(elBadge(e)));
-
-  const inPoss = poss.some(p=>p.join()===g.join());
-
-  const badge = document.createElement('span');
-  badge.className = inPoss ? 'guess-type-badge type-answer' : 'guess-type-badge type-info';
-  badge.textContent = inPoss ? '정답 후보' : '정보 수집용';
-  row.appendChild(badge);
-
-  const info = document.createElement('span');
-  info.className = 'suggest-info';
-  info.textContent = `${poss.length}가지 중 최적`;
-  row.appendChild(info);
+  g.forEach((e, pos) => pick(pos, e));
 }
 
 function renderHistory() {
@@ -1105,10 +1112,51 @@ function renderHistory() {
   }
 }
 
+// 음·술만 표시 — 훈·두는 어차피 4개씩 준비하니까
+function renderNeeds() {
+  const row = document.getElementById('needs-row');
+  row.innerHTML = '';
+
+  if (poss.length === 0) {
+    const s = document.createElement('span');
+    s.className = 'no-sol';
+    s.textContent = '가능한 경우가 없습니다. 입력 내용을 확인하고 처음부터 다시 시작하세요.';
+    row.appendChild(s);
+    return;
+  }
+
+  for (let e = 0; e < 2; e++) {   // 0=음, 1=술
+    let min = 4, max = 0;
+    for (const p of poss) {
+      let c = 0;
+      for (let i = 0; i < 4; i++) if (p[i] === e) c++;
+      if (c < min) min = c;
+      if (c > max) max = c;
+    }
+
+    const cell = document.createElement('div');
+    cell.className = 'need-cell' + (max === 0 ? ' need-none' : (min === max ? ' need-fixed' : ''));
+    cell.appendChild(elBadge(e));
+
+    const num = document.createElement('div');
+    num.className = 'need-max';
+    num.innerHTML = max + '<em>개</em>';
+    cell.appendChild(num);
+
+    const sub = document.createElement('div');
+    sub.className = 'need-sub';
+    sub.textContent = max === 0 ? '그만 캐!' : (min === max ? '확정' : '');
+    cell.appendChild(sub);
+
+    row.appendChild(cell);
+  }
+}
+
 function updateStats() {
   document.getElementById('stat-left').textContent = Math.max(0, 7-used);
   document.getElementById('stat-used').textContent = used;
   document.getElementById('stat-poss').textContent = poss.length;
+  renderNeeds();
 }
 
 function recomputePoss() {
@@ -1175,10 +1223,7 @@ function submitGuess() {
     row.innerHTML = '';
     const last = history[history.length-1];
     if (last.ol !== 4 && poss.length > 0) {
-      const lbl = document.createElement('span');
-      lbl.className = 'suggest-info';
-      lbl.textContent = '남은 가능한 답: ';
-      row.appendChild(lbl);
+      document.getElementById('endgame-card').style.display = 'block';
       poss.slice(0,6).forEach((p,i) => {
         if (i) { const sep=document.createElement('span'); sep.style.cssText='margin:0 4px;color:var(--border)'; sep.textContent='|'; row.appendChild(sep); }
         const wrap=document.createElement('span'); wrap.style.display='inline-flex'; wrap.style.gap='3px';
@@ -1603,7 +1648,7 @@ function rewardRender() {
     const toggleBtn = document.createElement('button');
     toggleBtn.textContent = isToday ? '참가 ✓' : '미참';
     toggleBtn.style.cssText = `font-size:0.65rem;padding:1px 7px;border-radius:8px;cursor:pointer;border:none;flex-shrink:0;${
-      isToday ? 'background:var(--green);color:#1a0e08;font-weight:700' : 'background:var(--bg-input);color:var(--gray);border:1px solid var(--border)'}`;
+      isToday ? 'background:var(--green);color:var(--text-on-accent);font-weight:700' : 'background:var(--bg-input);color:var(--gray);border:1px solid var(--border)'}`;
     toggleBtn.onclick = () => rewardToggleToday(name);
     const delBtn = document.createElement('button');
     delBtn.textContent = '×';
@@ -1759,6 +1804,7 @@ buildPicker();
 buildNumRows();
 buildTestPicker();
 renderSuggestion();
+renderNeeds();
 
 // 테마 토글 버튼 초기 아이콘
 (function() {
@@ -1770,15 +1816,15 @@ renderSuggestion();
 
 <button id="patch-btn" onclick="openPatchNotes()"
   style="position:fixed;bottom:10px;left:12px;width:22px;height:22px;
-    border-radius:50%;background:rgba(180,150,80,.18);
-    border:1px solid rgba(180,150,80,.35);color:rgba(180,150,80,.6);
+    border-radius:50%;background:var(--bg-panel-inner);
+    border:1px solid var(--border);color:var(--gray);
     font-size:.75rem;font-weight:700;cursor:pointer;display:flex;align-items:center;
     justify-content:center;padding:0;transition:background .2s,color .2s;
     z-index:9500;">i</button>
 <button id="theme-toggle" onclick="toggleTheme()"
   style="position:fixed;bottom:10px;left:40px;width:22px;height:22px;
-    border-radius:50%;background:rgba(180,150,80,.18);
-    border:1px solid rgba(180,150,80,.35);color:rgba(180,150,80,.6);
+    border-radius:50%;background:var(--bg-panel-inner);
+    border:1px solid var(--border);color:var(--gray);
     font-size:.75rem;cursor:pointer;display:flex;align-items:center;
     justify-content:center;padding:0;transition:background .2s,color .2s;
     z-index:9500;">🌙</button>
