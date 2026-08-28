@@ -241,6 +241,35 @@ h1 {
 .submit-btn:hover { opacity: 0.88; }
 .submit-btn:disabled { background:var(--bg-panel); color:var(--border); box-shadow:none; cursor:not-allowed; }
 
+/* ── 불가능한 조합 경고 ── */
+.submit-wrap { position:relative; }
+@keyframes fb-shake {
+  0%,100% { transform:translateX(0); }
+  15% { transform:translateX(-7px); }
+  30% { transform:translateX(6px); }
+  45% { transform:translateX(-5px); }
+  60% { transform:translateX(4px); }
+  80% { transform:translateX(-2px); }
+}
+.submit-btn.invalid {
+  background: var(--red);
+  box-shadow: 0 2px 8px rgba(198,40,40,.45);
+  animation: fb-shake 0.45s;
+}
+.warn-bubble {
+  position:absolute; left:0; right:0; bottom:calc(100% + 1px);
+  background: var(--red); color:#fff;
+  padding:8px 10px; border-radius:9px;
+  font-size:0.78rem; line-height:1.45; text-align:center;
+  box-shadow: 0 3px 10px rgba(0,0,0,.28);
+  z-index:5; opacity:1; transition:opacity 0.3s;
+}
+.warn-bubble.hide { opacity:0; }
+.warn-bubble::after {
+  content:''; position:absolute; top:100%; left:50%; margin-left:-6px;
+  border:6px solid transparent; border-top-color: var(--red);
+}
+
 .btn-row { display:flex; gap:8px; }
 .undo-btn {
   flex:1; padding:8px;
@@ -605,7 +634,10 @@ h1 {
       </div>
     </div>
 
-    <button class="submit-btn" id="submit-btn" onclick="submitGuess()">입력</button>
+    <div class="submit-wrap">
+      <div class="warn-bubble" id="fb-warn" style="display:none"></div>
+      <button class="submit-btn" id="submit-btn" onclick="submitGuess()">입력</button>
+    </div>
     <div class="btn-row">
       <button class="undo-btn" id="undo-btn" onclick="undoLast()" disabled>마지막 취소</button>
       <button class="reset-btn" onclick="resetGame()">처음부터 다시</button>
@@ -715,10 +747,14 @@ h1 {
 
 </div>
 
-<div class="version-label">똘레로_1.009.0</div>
+<div class="version-label">똘레로_1.010.0</div>
 
 <script>
 const PATCH_NOTES = [
+  { ver: '1.010.0', date: '26.08.28',
+    feat: ['불가능한 올/틀 조합을 입력하면 입력 버튼이 빨갛게 흔들리며 말풍선으로 경고 - 시도 횟수는 소모되지 않음'],
+    fix: ['이전 기록과 모순되는 입력으로 경우의 수가 0이 되어 처음부터 다시 시작해야 하던 문제'],
+  },
   { ver: '1.009.0', date: '26.08.27',
     feat: ['문구 변경 - "이제 그만 캐셔도 되요", 상단 인사말 교체'],
     fix: ['두(흰색) 뱃지가 밝은 배경에 묻히던 문제 - 검정 테두리 추가'],
@@ -1192,6 +1228,28 @@ function undoLast() {
   document.getElementById('undo-btn').disabled = (history.length === 0);
 }
 
+// ── 불가능한 조합 경고 ──
+let warnTimer = null;
+function showInvalidWarning() {
+  const btn = document.getElementById('submit-btn');
+  const bubble = document.getElementById('fb-warn');
+
+  btn.classList.remove('invalid');
+  void btn.offsetWidth;            // 연속 클릭 시 흔들림 애니메이션 재시작
+  btn.classList.add('invalid');
+
+  bubble.innerHTML = '불가능한 조합입니다<br>잘 보고 다시 입력하시거나 마지막 취소를 누르세요';
+  bubble.style.display = 'block';
+  bubble.classList.remove('hide');
+
+  clearTimeout(warnTimer);
+  warnTimer = setTimeout(() => {
+    btn.classList.remove('invalid');
+    bubble.classList.add('hide');
+    setTimeout(() => { bubble.classList.contains('hide') && (bubble.style.display = 'none'); }, 300);
+  }, 4000);
+}
+
 function submitGuess() {
   if (over) return;
 
@@ -1200,6 +1258,12 @@ function submitGuess() {
     const f = feedback(sel, testSecret);
     ol = f.ol; teul = f.teul;
     updateFbDisplay();
+  }
+
+  // 남는 후보가 하나도 없는 피드백 = 불가능한 조합 (올3틀1 같은 조합, 이전 기록과의 모순 모두 포함)
+  if (filterPoss(poss, sel, ol, teul).length === 0) {
+    showInvalidWarning();
+    return;
   }
 
   const isWin = (ol === 4);
