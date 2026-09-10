@@ -564,6 +564,65 @@ h1 {
 .tp-active-1 { background:#22c55e; color:#fff; border-color:#22c55e; }
 .tp-active-2 { background:#eab308; color:#1a1a1a; border-color:#eab308; }
 .tp-active-3 { background:#f0f4f0; color:#1a1a1a; border-color:#1a1a1a; }
+
+/* ── 아모리안 파티퀘스트: 독립 테마 (다른 탭의 라이트/다크 토글과 무관, 추후 재디자인 예정) ── */
+#tab-amo {
+  --brown:          #2a2440;
+  --gold:           #6c5ce7;
+  --gold-2:         #4834a6;
+  --green:          #22c55e;
+  --red:            #e74c3c;
+  --gray:           #8b86a8;
+  --dark:           #2a2440;
+  --bg-app:         #f3f1fa;
+  --bg-panel:       #ffffff;
+  --bg-panel-inner: #ece9f7;
+  --bg-input:       #e4e0f5;
+  --border:         #d3cdec;
+  --shadow-card:    0 2px 10px rgba(70,50,130,.08);
+  --accent-bg:      #e6e1fa;
+  --accent-border:  #b8adf0;
+  --drag-over-bg:   rgba(108,92,231,.08);
+  --text-on-accent: #ffffff;
+  --ol-bg:          #e6e1fa;
+  --ol-border:      #b8adf0;
+  --teul-bg:        #e6e1fa;
+  --gold-shadow:    rgba(108,92,231,.25);
+  --gold-faint:     rgba(108,92,231,.35);
+  color: var(--dark);
+}
+.amo-tile-row { display:flex; gap:8px; justify-content:center; margin-bottom:8px; }
+.amo-tile {
+  width: 52px; height: 52px;
+  border: 2px solid var(--border); border-radius: 9px;
+  background: var(--bg-input); color: var(--gray);
+  font-weight: 700; font-size: 1rem;
+  cursor: pointer; transition: all 0.1s;
+}
+.amo-tile:hover { border-color: var(--gray); color: var(--brown); }
+.amo-tile.sel { background: var(--gold); color: var(--text-on-accent); border-color: var(--gold); }
+/* ── 아모리안 히스토리: 시도마다 9칸 미니 보드로 표시 ── */
+.amo-h-row {
+  display: flex; align-items: center; gap: 10px;
+  padding-bottom: 10px; margin-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+.amo-h-row:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.amo-h-num { width: 16px; font-size: 0.72rem; color: var(--gray); flex-shrink: 0; }
+.amo-mini-board { display: flex; flex-direction: column; gap: 3px; }
+.amo-tile-mini-row { display: flex; gap: 3px; justify-content: center; }
+.amo-tile-mini {
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
+  border: 2px solid var(--border); border-radius: 6px;
+  background: var(--bg-input); color: var(--gray);
+  font-weight: 700; font-size: 0.68rem;
+}
+.amo-tile-mini.sel { background: var(--gold); color: var(--text-on-accent); border-color: var(--gold); }
+.amo-h-meta {
+  margin-left: auto; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+}
 </style>
 </head>
 <body>
@@ -576,6 +635,7 @@ h1 {
   <div class="tab-bar">
     <button class="tab-btn active" onclick="switchTab('gildae')">퍼즐 도우미</button>
     <button class="tab-btn" onclick="switchTab('reward')">보상방 분배기</button>
+    <button class="tab-btn" onclick="switchTab('amo')">아모리안 파티퀘스트</button>
   </div>
 
   <div class="tab-content active" id="tab-gildae">
@@ -745,12 +805,51 @@ h1 {
     </div>
   </div><!-- /tab-reward -->
 
+  <div class="tab-content" id="tab-amo">
+    <p class="subtitle" style="margin-bottom:14px;">5명이 정확한 발판에 서면 성공 · 시도마다 정답 개수를 알려줘요</p>
+
+    <!-- History -->
+    <div class="card" id="amo-history-card">
+      <div class="card-title">입력 기록</div>
+      <div class="history-empty" id="amo-hist-empty">아직 입력된 시도가 없습니다</div>
+    </div>
+
+    <!-- Input -->
+    <div class="card" id="amo-input-card">
+      <div class="card-title">발판 선택 (5명이 올라갈 곳)</div>
+      <div id="amo-board"></div>
+      <div style="font-size:0.78rem;color:var(--gray);margin:2px 0 14px;text-align:center">
+        선택 <span id="amo-sel-count" style="color:var(--gold);font-weight:700">5</span>/5
+      </div>
+
+      <div class="fb-input-row">
+        <div class="fb-grp">
+          <label class="lbl-ol">정답</label>
+          <div class="num-row" id="amo-correct-row"></div>
+        </div>
+      </div>
+
+      <div class="submit-wrap">
+        <div class="warn-bubble" id="amo-fb-warn" style="display:none"></div>
+        <button class="submit-btn" id="amo-submit-btn" onclick="submitAmoGuess()">입력</button>
+      </div>
+      <div class="btn-row">
+        <button class="undo-btn" id="amo-undo-btn" onclick="undoAmoLast()" disabled>뒤로가기</button>
+        <button class="reset-btn" onclick="resetAmoGame()">초기화</button>
+      </div>
+    </div>
+  </div><!-- /tab-amo -->
+
 </div>
 
-<div class="version-label">똘레로_1.010.0</div>
+<div class="version-label">똘레로_1.011.0</div>
 
 <script>
 const PATCH_NOTES = [
+  { ver: '1.011.0', date: '26.09.10',
+    feat: ['"아모리안 파티퀘스트" 탭 추가 - 9칸(A2B3 / C6D95) 중 정답 5칸 찾기 퍼즐, 시도마다 정답 개수 기반 다음 추측 추천', '아모리안 탭은 다른 탭과 독립된 테마 적용 (추후 디자인 예정)'],
+    fix: [],
+  },
   { ver: '1.010.0', date: '26.08.28',
     feat: ['불가능한 올/틀 조합을 입력하면 입력 버튼이 빨갛게 흔들리며 말풍선으로 경고 - 시도 횟수는 소모되지 않음'],
     fix: ['이전 기록과 모순되는 입력으로 경우의 수가 0이 되어 처음부터 다시 시작해야 하던 문제'],
@@ -1330,6 +1429,289 @@ function resetGame() {
   // Don't clear testSecret on reset so you can replay the same secret
 }
 
+// ── 아모리안 파티퀘스트 (다른 퍼즐: 5인 발판 찾기) ──
+// 윗줄 A 2 B 3 / 아랫줄 C 6 D 9 5, 총 9칸 중 정답 5칸을 맞히면 성공.
+// 매 시도마다 "선택한 5칸 중 정답 개수"만 알려주는 방식이라 길드대항전과는 다른 로직(부분집합 교집합 크기) 사용.
+const AMO_ROWS = [ ['A','2','B','3'], ['C','6','D','9','5'] ];
+const AMO_ALL_LABELS = AMO_ROWS.flat(); // index 0..8
+
+function amoPopcount(m) {
+  let c = 0;
+  while (m) { c += m & 1; m >>= 1; }
+  return c;
+}
+
+// 원소 5개가 켜진 모든 비트마스크 (0~511 중 9C5 = 126가지)
+const AMO_ALL_MASKS = [];
+for (let m = 0; m < 512; m++) if (amoPopcount(m) === 5) AMO_ALL_MASKS.push(m);
+
+function amoSetToMask(set) {
+  let m = 0;
+  for (const i of set) m |= (1 << i);
+  return m;
+}
+function amoMaskToSet(m) {
+  const s = new Set();
+  for (let i = 0; i < 9; i++) if (m & (1 << i)) s.add(i);
+  return s;
+}
+
+const AMO_FIRST_GUESS = amoSetToMask(new Set([0, 1, 2, 3, 4])); // A 2 B 3 C
+
+// State
+let amoPoss = AMO_ALL_MASKS.slice();
+let amoHistory = [];
+let amoSel = amoMaskToSet(AMO_FIRST_GUESS);
+let amoCorrectSel = 0;
+let amoUsed = 0;
+let amoOver = false;
+
+function amoFeedback(guessMask, secretMask) {
+  return amoPopcount(guessMask & secretMask);
+}
+
+function amoFilterPoss(possibilities, guessMask, expCorrect) {
+  return possibilities.filter(s => amoFeedback(guessMask, s) === expCorrect);
+}
+
+// Minimax: 남은 후보 중 최악의 경우를 가장 적게 남기는 추측 선택
+// prevMask가 있으면, 정답을 좁히는 효율(worst)이 동률일 때 직전 발판과 가장 적게
+// 달라지는(=사람이 덜 움직이는) 추측을 우선한다.
+function amoBestGuess(possibilities, prevMask) {
+  if (possibilities.length === 0) return null;
+  if (possibilities.length === 1) return possibilities[0];
+
+  const possSet = new Set(possibilities);
+  let best = possibilities[0];
+  let bestScore = Infinity;
+
+  for (const g of AMO_ALL_MASKS) {
+    const parts = {};
+    for (const s of possibilities) {
+      const k = amoFeedback(g, s);
+      parts[k] = (parts[k] || 0) + 1;
+    }
+    const worst = Math.max(...Object.values(parts));
+    const moveCost = (prevMask != null) ? amoPopcount(g ^ prevMask) : 0;
+    const score = worst * 1000 + moveCost * 2 - (possSet.has(g) ? 1 : 0);
+    if (score < bestScore) { bestScore = score; best = g; }
+  }
+  return best;
+}
+
+function buildAmoBoard() {
+  const board = document.getElementById('amo-board');
+  board.innerHTML = '';
+  let idx = 0;
+  AMO_ROWS.forEach(labels => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'amo-tile-row';
+    labels.forEach(label => {
+      const i = idx++;
+      const btn = document.createElement('button');
+      btn.className = 'amo-tile' + (amoSel.has(i) ? ' sel' : '');
+      btn.textContent = label;
+      btn.onclick = () => toggleAmoTile(i);
+      rowEl.appendChild(btn);
+    });
+    board.appendChild(rowEl);
+  });
+}
+
+function toggleAmoTile(i) {
+  if (amoOver) return;
+  if (amoSel.has(i)) {
+    amoSel.delete(i);
+  } else {
+    if (amoSel.size >= 5) return;
+    amoSel.add(i);
+  }
+  buildAmoBoard();
+  updateAmoSelCount();
+}
+
+function updateAmoSelCount() {
+  document.getElementById('amo-sel-count').textContent = amoSel.size;
+  document.getElementById('amo-submit-btn').disabled = amoOver || amoSel.size !== 5;
+}
+
+function buildAmoCorrectRow() {
+  const row = document.getElementById('amo-correct-row');
+  row.innerHTML = '';
+  for (let n = 0; n <= 5; n++) {
+    const btn = document.createElement('button');
+    btn.className = 'num-btn' + (n === amoCorrectSel ? ' active-ol' : '');
+    btn.textContent = n;
+    btn.onclick = () => { amoCorrectSel = n; buildAmoCorrectRow(); };
+    row.appendChild(btn);
+  }
+}
+
+// 최적 추측을 계산해서 발판 선택에 바로 반영 (수정도 가능)
+function renderAmoSuggestion() {
+  if (amoPoss.length === 0) return;
+  let g;
+  if (amoUsed === 0) {
+    g = AMO_FIRST_GUESS;
+  } else {
+    const prevMask = amoHistory[amoHistory.length - 1].guessMask;
+    g = amoBestGuess(amoPoss, prevMask);
+  }
+  amoSel = amoMaskToSet(g);
+  buildAmoBoard();
+  updateAmoSelCount();
+}
+
+// 시도 하나를 9칸 미니 보드로 렌더링 (선택된 5칸만 강조)
+function amoMiniBoard(guessMask) {
+  const wrap = document.createElement('div');
+  wrap.className = 'amo-mini-board';
+  let idx = 0;
+  AMO_ROWS.forEach(labels => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'amo-tile-mini-row';
+    labels.forEach(label => {
+      const i = idx++;
+      const tile = document.createElement('div');
+      tile.className = 'amo-tile-mini' + ((guessMask & (1 << i)) ? ' sel' : '');
+      tile.textContent = label;
+      rowEl.appendChild(tile);
+    });
+    wrap.appendChild(rowEl);
+  });
+  return wrap;
+}
+
+function renderAmoHistory() {
+  const card = document.getElementById('amo-history-card');
+  card.querySelectorAll('.amo-h-row, .game-msg').forEach(r => r.remove());
+
+  const empty = document.getElementById('amo-hist-empty');
+  empty.style.display = amoHistory.length ? 'none' : 'block';
+
+  amoHistory.forEach((entry, i) => {
+    const row = document.createElement('div');
+    row.className = 'amo-h-row';
+
+    const num = document.createElement('span');
+    num.className = 'amo-h-num';
+    num.textContent = i + 1;
+    row.appendChild(num);
+
+    row.appendChild(amoMiniBoard(entry.guessMask));
+
+    const meta = document.createElement('div');
+    meta.className = 'amo-h-meta';
+    const b = document.createElement('span');
+    b.className = 'fb fb-ol';
+    b.textContent = entry.correct + '/5';
+    meta.appendChild(b);
+    const pc = document.createElement('span');
+    pc.className = 'h-poss';
+    pc.textContent = entry.possCount + '개 중';
+    meta.appendChild(pc);
+    row.appendChild(meta);
+
+    card.appendChild(row);
+  });
+
+  if (amoOver) {
+    const msg = document.createElement('div');
+    msg.className = 'game-msg game-win';
+    msg.textContent = `${amoUsed}번 만에 성공!`;
+    card.appendChild(msg);
+  }
+}
+
+function amoRecomputePoss() {
+  amoPoss = AMO_ALL_MASKS.slice();
+  for (const e of amoHistory) amoPoss = amoFilterPoss(amoPoss, e.guessMask, e.correct);
+}
+
+function undoAmoLast() {
+  if (amoHistory.length === 0) return;
+  amoHistory.pop();
+  amoUsed--;
+  amoOver = false;
+  amoRecomputePoss();
+
+  amoCorrectSel = 0;
+  buildAmoCorrectRow();
+  renderAmoHistory();
+  renderAmoSuggestion();
+  document.getElementById('amo-submit-btn').disabled = false;
+  document.getElementById('amo-input-card').style.opacity = '1';
+  document.getElementById('amo-undo-btn').disabled = (amoHistory.length === 0);
+}
+
+// ── 불가능한 조합 경고 ──
+let amoWarnTimer = null;
+function showAmoInvalidWarning() {
+  const btn = document.getElementById('amo-submit-btn');
+  const bubble = document.getElementById('amo-fb-warn');
+
+  btn.classList.remove('invalid');
+  void btn.offsetWidth;
+  btn.classList.add('invalid');
+
+  bubble.innerHTML = '불가능한 조합입니다<br>잘 보고 다시 입력하시거나 뒤로가기를 누르세요';
+  bubble.style.display = 'block';
+  bubble.classList.remove('hide');
+
+  clearTimeout(amoWarnTimer);
+  amoWarnTimer = setTimeout(() => {
+    btn.classList.remove('invalid');
+    bubble.classList.add('hide');
+    setTimeout(() => { bubble.classList.contains('hide') && (bubble.style.display = 'none'); }, 300);
+  }, 4000);
+}
+
+function submitAmoGuess() {
+  if (amoOver || amoSel.size !== 5) return;
+
+  const guessMask = amoSetToMask(amoSel);
+  const filtered = amoFilterPoss(amoPoss, guessMask, amoCorrectSel);
+  if (filtered.length === 0) {
+    showAmoInvalidWarning();
+    return;
+  }
+
+  amoHistory.push({ guessMask, correct: amoCorrectSel, possCount: amoPoss.length });
+  amoUsed++;
+  amoPoss = filtered;
+  if (amoCorrectSel === 5) amoOver = true;
+
+  amoCorrectSel = 0;
+  buildAmoCorrectRow();
+  document.getElementById('amo-undo-btn').disabled = false;
+
+  if (amoOver) {
+    document.getElementById('amo-submit-btn').disabled = true;
+    document.getElementById('amo-input-card').style.opacity = '0.5';
+  }
+
+  renderAmoHistory();
+  if (!amoOver) renderAmoSuggestion();
+}
+
+function resetAmoGame() {
+  amoPoss = AMO_ALL_MASKS.slice();
+  amoHistory = [];
+  amoSel = amoMaskToSet(AMO_FIRST_GUESS);
+  amoCorrectSel = 0;
+  amoUsed = 0;
+  amoOver = false;
+
+  buildAmoCorrectRow();
+  renderAmoHistory();
+  buildAmoBoard();
+  updateAmoSelCount();
+
+  document.getElementById('amo-submit-btn').disabled = false;
+  document.getElementById('amo-input-card').style.opacity = '1';
+  document.getElementById('amo-undo-btn').disabled = true;
+}
+
 // ── Tab switching ──
 function switchTab(name) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -1878,6 +2260,12 @@ buildNumRows();
 buildTestPicker();
 renderSuggestion();
 renderNeeds();
+
+// 아모리안 파티퀘스트 Init
+buildAmoBoard();
+buildAmoCorrectRow();
+updateAmoSelCount();
+renderAmoHistory();
 
 // 테마 토글 버튼 초기 아이콘
 (function() {
