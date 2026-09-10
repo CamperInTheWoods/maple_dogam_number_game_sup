@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>도감길드 길대 도우미</title>
+<title>도감길드 파티퀘스트 도우미</title>
 <script>
 (function(){
   var t = localStorage.getItem('dogam-gildae-theme');
@@ -70,6 +70,10 @@
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* 탭마다 페이지 높이가 달라 스크롤바가 생겼다 사라졌다 하면서
+   가운데 정렬된 내용(제목 포함)이 좌우로 살짝 밀리는 것을 방지 */
+html { scrollbar-gutter: stable; }
+
 ::-webkit-scrollbar { width: 8px; }
 ::-webkit-scrollbar-track { background: var(--bg-input); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -85,6 +89,11 @@ body {
   display: flex;
   justify-content: center;
   padding: 24px 16px;
+  transition: background 0.2s;
+}
+/* 아모리안 파티퀘스트 탭이 활성화되면 뒷배경 전체(뷰포트 폭)에 그라데이션 적용 */
+body.amo-active {
+  background: linear-gradient(135deg, #d199be, #99a2d1);
 }
 
 .container { width: 100%; max-width: 560px; }
@@ -263,6 +272,7 @@ h1 {
   font-size:0.78rem; line-height:1.45; text-align:center;
   box-shadow: 0 3px 10px rgba(0,0,0,.28);
   z-index:5; opacity:1; transition:opacity 0.3s;
+  cursor: pointer;
 }
 .warn-bubble.hide { opacity:0; }
 .warn-bubble::after {
@@ -567,30 +577,30 @@ h1 {
 
 /* ── 아모리안 파티퀘스트: 독립 테마 (다른 탭의 라이트/다크 토글과 무관, 추후 재디자인 예정) ── */
 #tab-amo {
-  --brown:          #2a2440;
-  --gold:           #6c5ce7;
-  --gold-2:         #4834a6;
+  --brown:          #3b3260;
+  --gold:           #6472b9;
+  --gold-2:         #b964ab;
   --green:          #22c55e;
   --red:            #e74c3c;
-  --gray:           #8b86a8;
-  --dark:           #2a2440;
-  --bg-app:         #f3f1fa;
-  --bg-panel:       #ffffff;
-  --bg-panel-inner: #ece9f7;
-  --bg-input:       #e4e0f5;
-  --border:         #d3cdec;
-  --shadow-card:    0 2px 10px rgba(70,50,130,.08);
-  --accent-bg:      #e6e1fa;
-  --accent-border:  #b8adf0;
-  --drag-over-bg:   rgba(108,92,231,.08);
+  --gray:           #8d84a6;
+  --dark:           #3b3260;
+  --bg-panel:       rgba(255,255,255,.8);
+  --bg-panel-inner: rgba(255,255,255,.55);
+  --bg-input:       rgba(255,255,255,.55);
+  --border:         #a89bc4;
+  --shadow-card:    0 4px 18px rgba(100,70,150,.18);
+  --accent-bg:      rgba(255,255,255,.65);
+  --accent-border:  #8f7cc7;
+  --drag-over-bg:   rgba(100,114,185,.1);
   --text-on-accent: #ffffff;
-  --ol-bg:          #e6e1fa;
-  --ol-border:      #b8adf0;
-  --teul-bg:        #e6e1fa;
-  --gold-shadow:    rgba(108,92,231,.25);
-  --gold-faint:     rgba(108,92,231,.35);
+  --ol-bg:          rgba(255,255,255,.65);
+  --ol-border:      #8f7cc7;
+  --teul-bg:        rgba(255,255,255,.65);
+  --gold-shadow:    rgba(100,114,185,.3);
+  --gold-faint:     rgba(185,100,171,.35);
   color: var(--dark);
 }
+#tab-amo .card { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
 .amo-tile-row { display:flex; gap:8px; justify-content:center; margin-bottom:8px; }
 .amo-tile {
   width: 52px; height: 52px;
@@ -600,7 +610,10 @@ h1 {
   cursor: pointer; transition: all 0.1s;
 }
 .amo-tile:hover { border-color: var(--gray); color: var(--brown); }
-.amo-tile.sel { background: var(--gold); color: var(--text-on-accent); border-color: var(--gold); }
+.amo-tile.sel {
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  color: var(--text-on-accent); border-color: var(--gold);
+}
 /* ── 아모리안 히스토리: 시도마다 9칸 미니 보드로 표시 ── */
 .amo-h-row {
   display: flex; align-items: center; gap: 10px;
@@ -618,7 +631,10 @@ h1 {
   background: var(--bg-input); color: var(--gray);
   font-weight: 700; font-size: 0.68rem;
 }
-.amo-tile-mini.sel { background: var(--gold); color: var(--text-on-accent); border-color: var(--gold); }
+.amo-tile-mini.sel {
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  color: var(--text-on-accent); border-color: var(--gold);
+}
 .amo-h-meta {
   margin-left: auto; flex-shrink: 0;
   display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
@@ -627,7 +643,7 @@ h1 {
 </head>
 <body>
 <div class="container">
-  <h1>길드 대항전 도우미</h1>
+  <h1>도감길드 퍼즐 도우미</h1>
   <p class="subtitle" style="margin-bottom:4px;">도감길드 파이팅!</p>
   <p class="subtitle" style="margin-bottom:4px;">프로그램 잘 써주셔서 감사합니다</p>
   <p class="subtitle code-line">2-1-5-2-2-1-2</p>
@@ -695,7 +711,7 @@ h1 {
     </div>
 
     <div class="submit-wrap">
-      <div class="warn-bubble" id="fb-warn" style="display:none"></div>
+      <div class="warn-bubble" id="fb-warn" style="display:none" onclick="dismissFbWarn()"></div>
       <button class="submit-btn" id="submit-btn" onclick="submitGuess()">입력</button>
     </div>
     <div class="btn-row">
@@ -830,7 +846,7 @@ h1 {
       </div>
 
       <div class="submit-wrap">
-        <div class="warn-bubble" id="amo-fb-warn" style="display:none"></div>
+        <div class="warn-bubble" id="amo-fb-warn" style="display:none" onclick="dismissAmoFbWarn()"></div>
         <button class="submit-btn" id="amo-submit-btn" onclick="submitAmoGuess()">입력</button>
       </div>
       <div class="btn-row">
@@ -1342,11 +1358,17 @@ function showInvalidWarning() {
   bubble.classList.remove('hide');
 
   clearTimeout(warnTimer);
-  warnTimer = setTimeout(() => {
-    btn.classList.remove('invalid');
-    bubble.classList.add('hide');
-    setTimeout(() => { bubble.classList.contains('hide') && (bubble.style.display = 'none'); }, 300);
-  }, 4000);
+  warnTimer = setTimeout(() => dismissFbWarn(), 4000);
+}
+
+// 말풍선을 클릭하면 바로 닫기
+function dismissFbWarn() {
+  clearTimeout(warnTimer);
+  const btn = document.getElementById('submit-btn');
+  const bubble = document.getElementById('fb-warn');
+  btn.classList.remove('invalid');
+  bubble.classList.add('hide');
+  setTimeout(() => { bubble.classList.contains('hide') && (bubble.style.display = 'none'); }, 300);
 }
 
 function submitGuess() {
@@ -1659,11 +1681,17 @@ function showAmoInvalidWarning() {
   bubble.classList.remove('hide');
 
   clearTimeout(amoWarnTimer);
-  amoWarnTimer = setTimeout(() => {
-    btn.classList.remove('invalid');
-    bubble.classList.add('hide');
-    setTimeout(() => { bubble.classList.contains('hide') && (bubble.style.display = 'none'); }, 300);
-  }, 4000);
+  amoWarnTimer = setTimeout(() => dismissAmoFbWarn(), 4000);
+}
+
+// 말풍선을 클릭하면 바로 닫기
+function dismissAmoFbWarn() {
+  clearTimeout(amoWarnTimer);
+  const btn = document.getElementById('amo-submit-btn');
+  const bubble = document.getElementById('amo-fb-warn');
+  btn.classList.remove('invalid');
+  bubble.classList.add('hide');
+  setTimeout(() => { bubble.classList.contains('hide') && (bubble.style.display = 'none'); }, 300);
 }
 
 function submitAmoGuess() {
@@ -1719,6 +1747,7 @@ function switchTab(name) {
   document.getElementById('tab-' + name).classList.add('active');
   document.querySelector(`.tab-btn[onclick="switchTab('${name}')"]`).classList.add('active');
   document.querySelector('.container').classList.toggle('container-wide', name === 'reward');
+  document.body.classList.toggle('amo-active', name === 'amo');
 }
 
 // ── Reward Distributor ──
