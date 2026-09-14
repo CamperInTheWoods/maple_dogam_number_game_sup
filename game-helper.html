@@ -917,10 +917,24 @@ h1 {
 </div>
 
 <div id="reward-toast"></div>
-<div class="version-label">똘레로_1.013.0</div>
+<div class="version-label">똘레로_1.014.0</div>
 
 <script>
 const PATCH_NOTES = [
+  { ver: '1.014.0', date: '26.09.14',
+    feat: [
+      '보상방: 공평 배정을 "판마다 참가자 평균 대비 더/덜 먹은 칸" 기준으로 계산',
+      '보상방: 전체 배치를 한꺼번에 비교해서 가장 공평한 자리 배정',
+      '보상방: 자리 배정 카드에 "평균+0.8"처럼 더/덜 먹은 칸 표시',
+      '보상방: 마법사·도적이 부족해 특정 구역에 고정되면 이유 안내',
+    ],
+    fix: [
+      '보상방: 신입·쉬었다 온 사람이 큰 자리를 계속 독차지하던 문제',
+      '보상방: 마법사·도적이 제한 구역에만 묶여 큰 자리를 못 받던 문제',
+      '보상방: 점수가 같으면 항상 목록 앞사람이 큰 자리를 받던 문제',
+      '보상방: 자리를 못 받고 대기한 판이 공평 계산에 반영 안 되던 문제',
+    ],
+  },
   { ver: '1.013.0', date: '26.09.14',
     feat: [
       '보상방 지도: 사각형 대신 실제 상자 위치대로 구역 표시',
@@ -1957,6 +1971,32 @@ if (!rewardAllMembers) {
   localStorage.setItem('rewardAllMembers', JSON.stringify(rewardAllMembers));
 }
 let rewardHistory = JSON.parse(localStorage.getItem('rewardHistory') || '{}');
+
+// 공평 점수: 판마다 (내가 먹은 칸 − 그 판 참가자 평균)을 누적. 음수 = 덜 먹음 → 다음 판 큰 자리 우선
+// 총합으로 비교하면 신입·복귀자가 큰 자리를 수십 판 독차지하므로 평균 대비로 계산한다
+let rewardBalance = JSON.parse(localStorage.getItem('rewardBalance') || 'null');
+if (!rewardBalance) {
+  // 이전 버전 기록(칸수×횟수)만 있으면 전체 평균 대비로 환산해서 이어받기
+  rewardBalance = {};
+  let allBoxes = 0, allRounds = 0;
+  Object.values(rewardHistory).forEach(h => Object.entries(h).forEach(([k, c]) => { allBoxes += k * c; allRounds += c; }));
+  if (allRounds) {
+    const avg = allBoxes / allRounds;
+    Object.entries(rewardHistory).forEach(([name, h]) => {
+      let boxes = 0, rounds = 0;
+      Object.entries(h).forEach(([k, c]) => { boxes += k * c; rounds += c; });
+      rewardBalance[name] = Math.round((boxes - rounds * avg) * 1000) / 1000;
+    });
+  }
+  localStorage.setItem('rewardBalance', JSON.stringify(rewardBalance));
+}
+
+function rewardApplyBalance(records, waiting, mean, sign) {
+  records.forEach(([name, cnt]) => { rewardBalance[name] = (rewardBalance[name] || 0) + sign * (cnt - mean); });
+  waiting.forEach(name => { rewardBalance[name] = (rewardBalance[name] || 0) - sign * mean; });
+  Object.keys(rewardBalance).forEach(n => { rewardBalance[n] = Math.round(rewardBalance[n] * 1000) / 1000; });
+  localStorage.setItem('rewardBalance', JSON.stringify(rewardBalance));
+}
 let rewardMages = new Set(JSON.parse(localStorage.getItem('rewardMages') || '[]'));
 let rewardThieves = new Set(JSON.parse(localStorage.getItem('rewardThieves') || '[]'));
 
@@ -2220,10 +2260,17 @@ function rewardMakeCard(name, from, showStats = false, showJobs = showStats) {
     if (h && Object.keys(h).length) {
       const stat = document.createElement('span');
       stat.className = 'name-stat-line';
-      stat.textContent = Object.entries(h)
+      const parts = Object.entries(h)
         .sort((a, b) => Number(b[0]) - Number(a[0]))
-        .map(([boxes, cnt]) => `${boxes}칸×${cnt}`)
-        .join(' · ');
+        .map(([boxes, cnt]) => `${boxes}칸×${cnt}`);
+      const bal = rewardBalance[name] || 0;
+      if (Math.abs(bal) >= 0.05) {
+        parts.push(`평균${bal > 0 ? '+' : ''}${bal.toFixed(1)}`);
+        card.title = bal > 0
+          ? `평균보다 ${bal.toFixed(1)}칸 더 먹었어요 — 다음 판엔 작은 자리 우선`
+          : `평균보다 ${(-bal).toFixed(1)}칸 덜 먹었어요 — 다음 판엔 큰 자리 우선`;
+      }
+      stat.textContent = parts.join(' · ');
       card.appendChild(stat);
     }
   }
@@ -2235,32 +2282,59 @@ function rewardMakeCard(name, from, showStats = false, showJobs = showStats) {
 
 function rewardAutoAssign() {
   const config = ZONE_CONFIGS[rewardCount];
-  const score = n => Object.entries(rewardHistory[n] || {})
-    .reduce((s, [boxes, cnt]) => s + Number(boxes) * cnt, 0);
+  const people = rewardNames.slice();
+  const Z = config.length;
+  const FULL = (1 << Z) - 1;
+  const INF = 1e18, EMPTY_PENALTY = 1e6;   // 구역을 비우는 건 어떤 불공평보다도 나쁨
 
-  // 제한 구역(마법사 전용 / 4번 하이브리드) 먼저, 그 외는 나중에
-  const restrictedZones = config.filter(z => zoneAccess(z.id) !== 'open').sort((a, b) => b.boxes.length - a.boxes.length);
-  const openZones = config.filter(z => zoneAccess(z.id) === 'open').sort((a, b) => b.boxes.length - a.boxes.length);
+  // 이번 판 1인당 평균 칸수 (구역이 다 찬다고 가정)
+  const mean = people.length ? config.reduce((s, z) => s + z.boxes.length, 0) / people.length : 0;
+  // 점수가 같을 때: 직전 판에 큰 자리였던 사람이 이번엔 작은 자리로
+  const lastBoxes = {};
+  const lastLog = rewardRoundLog[rewardRoundLog.length - 1];
+  if (lastLog) lastLog.records.forEach(([n, c]) => { lastBoxes[n] = c; });
 
-  const remainingPeople = new Set(rewardNames);
+  // 판이 끝난 뒤 공평 점수(평균 대비 누적)의 제곱합이 최소가 되는 배치를 찾는다.
+  // 사람을 한 명씩 보며 "이미 찬 구역 집합"별 최소 비용을 계산 (구역 ≤ 9개 → 상태 512개)
+  let dp = new Float64Array(FULL + 1).fill(INF);
+  dp[0] = 0;
+  const picks = [];   // picks[i][mask] = i번째 사람이 들어간 구역 index, -1 = 대기
+  people.forEach(name => {
+    const b = rewardBalance[name] || 0;
+    const last = lastBoxes[name] || 0;
+    const next = new Float64Array(FULL + 1).fill(INF);
+    const pick = new Int8Array(FULL + 1).fill(-2);
+    for (let mask = 0; mask <= FULL; mask++) {
+      if (dp[mask] >= INF) continue;
+      const wait = dp[mask] + (b - mean) ** 2;
+      if (wait < next[mask]) { next[mask] = wait; pick[mask] = -1; }
+      for (let j = 0; j < Z; j++) {
+        if (mask & (1 << j) || !canEnterZone(config[j].id, name)) continue;
+        const size = config[j].boxes.length;
+        const cost = dp[mask] + (b + size - mean) ** 2 + 0.001 * last * size;
+        const nm = mask | (1 << j);
+        if (cost < next[nm]) { next[nm] = cost; pick[nm] = j; }
+      }
+    }
+    picks.push(pick);
+    dp = next;
+  });
+
+  let bestMask = 0, bestCost = INF;
+  for (let mask = 0; mask <= FULL; mask++) {
+    if (dp[mask] >= INF) continue;
+    let empty = 0;
+    for (let j = 0; j < Z; j++) if (!(mask & (1 << j))) empty++;
+    const cost = dp[mask] + EMPTY_PENALTY * empty;
+    if (cost < bestCost) { bestCost = cost; bestMask = mask; }
+  }
+
   const newAssign = {};
   config.forEach(({ id }) => { newAssign[id] = []; });
-
-  restrictedZones.forEach(zone => {
-    const candidates = [...remainingPeople]
-      .filter(n => canEnterZone(zone.id, n))
-      .sort((a, b) => score(a) - score(b));
-    if (candidates.length) {
-      newAssign[zone.id] = [candidates[0]];
-      remainingPeople.delete(candidates[0]);
-    }
-  });
-
-  const remaining = [...remainingPeople].sort((a, b) => score(a) - score(b));
-  openZones.forEach((zone, i) => {
-    if (remaining[i]) newAssign[zone.id] = [remaining[i]];
-  });
-
+  for (let i = people.length - 1, mask = bestMask; i >= 0; i--) {
+    const j = picks[i][mask];
+    if (j >= 0) { newAssign[config[j].id] = [people[i]]; mask ^= 1 << j; }
+  }
   zoneAssign = newAssign;
 }
 
@@ -2276,6 +2350,8 @@ function rewardResetHistory() {
   if (!confirm('누적 기록과 판 번호를 모두 초기화할까요?\n되돌릴 수 없어요.')) return;
   rewardHistory = {};
   localStorage.removeItem('rewardHistory');
+  rewardBalance = {};
+  localStorage.setItem('rewardBalance', '{}');
   rewardRoundLog = [];
   rewardRound = 1;
   rewardRender();
@@ -2296,9 +2372,15 @@ function rewardNextRound() {
   });
   localStorage.setItem('rewardHistory', JSON.stringify(rewardHistory));
 
+  // 오늘 참가자 평균 대비로 공평 점수 반영 (자리 못 받은 참가자는 0칸)
+  const seated = new Set(records.map(([n]) => n));
+  const waiting = rewardNames.filter(n => !seated.has(n));
+  const mean = records.reduce((s, [, c]) => s + c, 0) / (records.length + waiting.length);
+  rewardApplyBalance(records, waiting, mean, +1);
+
   rewardRoundLog.push({
     round: rewardRound, count: rewardCount, manualEdited: rewardManualEdited,
-    assign: JSON.parse(JSON.stringify(zoneAssign)), records,
+    assign: JSON.parse(JSON.stringify(zoneAssign)), records, waiting, mean,
   });
   if (rewardRoundLog.length > 30) rewardRoundLog.shift();
 
@@ -2321,6 +2403,9 @@ function rewardUndoRound() {
     if (!Object.keys(h).length) delete rewardHistory[name];
   });
   localStorage.setItem('rewardHistory', JSON.stringify(rewardHistory));
+  // 1.013.0 이전 로그엔 waiting/mean이 없음 → 배정된 사람 평균으로
+  const mean = last.mean !== undefined ? last.mean : last.records.reduce((s, [, c]) => s + c, 0) / last.records.length;
+  rewardApplyBalance(last.records, last.waiting || [], mean, -1);
 
   rewardRound = last.round;
   rewardCount = last.count;
@@ -2388,6 +2473,19 @@ function rewardRender() {
       addNotice(`빈 구역 ${emptyZones.map(z => z.id).join(', ')} — 상자 주인이 없어요${needJob ? ' (마법사/도적 필요)' : ''}`);
     } else if (waiting) {
       addNotice(`구역이 꽉 찼어요 — ${waiting}명 대기`, true);
+    }
+
+    // 마법사·도적이 제한 구역 수만큼밖에 없으면 그 사람들은 매 판 같은 구역에 묶임 → 이유 안내
+    const mageZones = config.filter(z => zoneAccess(z.id) === 'mage').length;
+    const hybridZones = config.filter(z => zoneAccess(z.id) === 'hybrid').length;
+    const mages = rewardNames.filter(n => rewardMages.has(n));
+    const thieves = rewardNames.filter(n => rewardThieves.has(n));
+    // 직업자 전원이 제한 구역을 다 채워야 하면 전원 고정, 아니면 마법사 전용 구역만큼만 있는 마법사가 고정
+    const locked = mages.length + thieves.length <= mageZones + hybridZones
+      ? [...mages, ...thieves]
+      : (mages.length <= mageZones ? mages : []);
+    if (locked.length) {
+      addNotice(`${locked.join(', ')}님은 마법사·도적 구역을 맡을 사람이 부족해서 매 판 고정돼요`, true);
     }
   }
 
