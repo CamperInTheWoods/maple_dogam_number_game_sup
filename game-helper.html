@@ -395,6 +395,15 @@ h1 {
   background: rgba(200,148,50,0.25);
   border-color: var(--gold);
 }
+/* 5칸 이상 먹는 자리 */
+.rmap-zone.big-zone           { background: rgba(120,20,45,0.58); border-color: rgba(255,120,145,0.6); }
+.rmap-zone.big-zone.has-name  { background: rgba(150,25,55,0.75); border-color: rgba(255,135,155,0.95); }
+.rmap-zone.big-zone.drag-over { background: rgba(200,148,50,0.25); border-color: var(--gold); }
+.rmap-legend { display:flex; align-items:center; gap:6px; margin-top:6px; font-size:0.68rem; color:var(--gray); }
+.rmap-legend-swatch {
+  width:12px; height:12px; border-radius:3px; flex-shrink:0;
+  background: rgba(150,25,55,0.75); border: 1.5px solid rgba(255,135,155,0.95);
+}
 .rmap-zone-num { font-size: 0.6rem; color: #fff; line-height: 1.2; text-shadow: 0 1px 3px rgba(0,0,0,0.95), 0 0 6px rgba(0,0,0,0.8); }
 .rmap-zone-names {
   font-size: 0.75rem; color: #fff;
@@ -433,23 +442,87 @@ h1 {
 }
 .name-pool.drag-over { border-color: var(--gold); background: var(--drag-over-bg); }
 
-#reward-trash { display:inline-flex; align-items:center; margin-left:8px; cursor:default; vertical-align:middle; }
-#reward-trash svg { overflow:visible; }
-.trash-lid-group {
-  transform-box: fill-box;
-  transform-origin: left center;
-  transition: transform 0.22s cubic-bezier(.4,0,.2,1);
+/* 오늘 빼기 드롭 칩 (삭제 아님 — 전체 목록에는 남음) */
+#reward-out-drop {
+  display:inline-flex; align-items:center; margin-left:8px; vertical-align:middle;
+  padding:1px 8px; border-radius:10px; border:1px dashed var(--border);
+  font-size:0.62rem; font-weight:600; color:var(--gray); cursor:default;
+  transition: all 0.15s;
 }
-#reward-trash.lid-open .trash-lid-group { transform: rotate(-48deg); }
-@keyframes trash-digest {
-  0%,100% { transform: rotate(0deg); }
-  18%     { transform: rotate(-10deg); }
-  38%     { transform: rotate(10deg); }
-  55%     { transform: rotate(-7deg); }
-  72%     { transform: rotate(6deg); }
-  88%     { transform: rotate(-3deg); }
+#reward-out-drop.drop-hover { border-style:solid; border-color:var(--red); color:var(--red); background:var(--drag-over-bg); }
+@keyframes out-drop-pulse { 0%,100% { transform:scale(1); } 40% { transform:scale(1.14); } }
+#reward-out-drop.dropped { animation: out-drop-pulse 0.35s ease-out; }
+/* 전체 목록도 오늘 빼기 드롭 영역 */
+#reward-all-members { border-radius: 6px; outline: 2px dashed transparent; outline-offset: 1px; transition: outline-color 0.15s, background 0.15s; }
+#reward-all-members.drop-hover { outline-color: var(--red); background: var(--drag-over-bg); }
+#reward-all-members.drop-hover::before {
+  content: '여기에 놓으면 오늘 빼기';
+  position: sticky; top: 0; z-index: 1;
+  padding: 3px 0; text-align: center;
+  font-size: 0.68rem; font-weight: 700; color: #fff;
+  background: var(--red); border-radius: 4px;
 }
-#reward-trash.digesting { animation: trash-digest 0.55s ease-in-out; }
+
+/* 인원수 자동/수동 표시 */
+.reward-mode { display:inline-flex; align-items:center; gap:5px; font-size:0.68rem; color:var(--gray); }
+.reward-mode.manual { color:var(--dark); font-weight:600; }
+.reward-mode button {
+  font-size:0.62rem; padding:1px 6px; border-radius:6px; cursor:pointer;
+  background:var(--bg-input); color:var(--gray); border:1px solid var(--border);
+}
+.reward-mode button:hover { color:var(--dark); border-color:var(--gray); }
+
+/* 자리 배정: 판 진행 */
+.reward-round-title { display:flex; align-items:center; justify-content:space-between; }
+.reward-round {
+  font-size:0.72rem; font-weight:700; color:var(--gold);
+  padding:1px 8px; border-radius:10px;
+  background:var(--accent-bg); border:1px solid var(--accent-border);
+}
+#reward-notice { display:flex; flex-direction:column; gap:4px; margin-bottom:6px; }
+#reward-notice:empty { display:none; }
+.reward-notice-item {
+  display:flex; align-items:center; gap:6px; flex-wrap:wrap;
+  font-size:0.7rem; color:var(--red);
+  padding:4px 8px; border-radius:6px;
+  background:var(--bg-panel-inner); border:1px solid var(--border);
+}
+.reward-notice-item.info { color:var(--gray); }
+.reward-notice-item button {
+  font-size:0.65rem; padding:1px 7px; border-radius:6px; cursor:pointer;
+  background:var(--bg-input); color:var(--dark); border:1px solid var(--border);
+}
+.reward-next-btn {
+  width:100%; margin-top:6px; padding:9px;
+  background: linear-gradient(135deg, var(--gold), var(--gold-2));
+  color:var(--text-on-accent); border:none; border-radius:8px;
+  font-size:0.88rem; font-weight:700; cursor:pointer; transition:opacity 0.15s;
+}
+.reward-next-btn:hover { opacity:0.88; }
+.reward-sub-actions { display:flex; gap:6px; margin-top:6px; }
+.reward-sub-actions button {
+  flex:1; padding:5px; font-size:0.72rem; cursor:pointer;
+  background:transparent; color:var(--gray);
+  border:1px solid var(--border); border-radius:6px; transition:all 0.15s;
+}
+.reward-sub-actions button:hover:not(:disabled) { color:var(--dark); border-color:var(--gray); }
+.reward-sub-actions button:disabled { opacity:0.45; cursor:not-allowed; }
+.reward-reset-link {
+  display:block; margin:10px auto 0; background:none; border:none;
+  font-size:0.62rem; color:var(--gray); opacity:0.7; cursor:pointer; text-decoration:underline;
+}
+.reward-reset-link:hover { color:var(--red); opacity:1; }
+
+#reward-toast {
+  position:fixed; left:50%; bottom:28px; transform:translate(-50%, 12px);
+  padding:8px 16px; border-radius:20px;
+  background:var(--dark); color:var(--bg-panel);
+  font-size:0.82rem; font-weight:600; text-align:center;
+  max-width:calc(100vw - 32px);
+  opacity:0; pointer-events:none; transition:opacity 0.2s, transform 0.2s;
+  z-index:9600;
+}
+#reward-toast.show { opacity:1; transform:translate(-50%, 0); }
 
 .name-card {
   padding: 4px 10px;
@@ -460,6 +533,14 @@ h1 {
 }
 .name-card:hover { border-color: var(--gold); color: var(--gold); }
 .name-card.dragging { opacity: 0.35; }
+/* 오늘 참가 풀: 자리에 들어간 사람은 흐리게, 안 들어간 사람은 대기 태그 */
+.name-card.assigned { background: var(--bg-input); border-style: dashed; color: var(--gray); }
+.name-card.assigned:hover { color: var(--gold); }
+.name-slot-tag {
+  margin-left: auto; flex-shrink: 0;
+  font-size: 0.58rem; font-weight: 700; padding: 1px 6px; border-radius: 10px;
+}
+.name-slot-tag.wait { background: transparent; color: var(--red); border: 1px solid var(--red); }
 .name-stat-line { font-size: 0.62rem; color: var(--gray); line-height: 1.2; }
 
 .zone-slot {
@@ -747,17 +828,19 @@ h1 {
           <span>보상방 구역 지도</span>
           <div class="reward-top-bar" style="margin-bottom:0">
             <span class="reward-count-label">인원수</span>
-            <select class="reward-count-select" id="reward-count-select" onchange="rewardSetCount(+this.value)">
+            <select class="reward-count-select" id="reward-count-select" onchange="rewardSetCountManual(+this.value)">
               <option value="6" selected>6명</option>
               <option value="7">7명</option>
               <option value="8">8명</option>
               <option value="9">9명</option>
             </select>
+            <span class="reward-mode" id="reward-count-mode"></span>
             <button class="reward-img-btn" onclick="document.getElementById('reward-img-file').click()">🖼 이미지 선택</button>
             <input type="file" id="reward-img-file" accept="image/*" style="display:none" onchange="rewardLoadImage(this)">
           </div>
         </div>
         <div class="reward-map-container" id="reward-map-container"></div>
+        <div class="rmap-legend"><span class="rmap-legend-swatch"></span>5칸 이상 먹는 자리</div>
       </div>
 
       <!-- 하단: 3분할 -->
@@ -766,19 +849,7 @@ h1 {
         <!-- 좌: 이름 풀 -->
         <div class="card">
           <div class="card-title">참가자
-            <span id="reward-trash">
-              <svg width="20" height="24" viewBox="0 0 24 28" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <!-- 몸통 -->
-                <rect x="3" y="11" width="18" height="16" rx="2" fill="var(--gray)" opacity="0.5"/>
-                <line x1="9" y1="14" x2="9" y2="24" stroke="var(--gray)" stroke-width="1.5" opacity="0.5"/>
-                <line x1="15" y1="14" x2="15" y2="24" stroke="var(--gray)" stroke-width="1.5" opacity="0.5"/>
-                <!-- 뚜껑 (힌지: 오른쪽 끝) -->
-                <g class="trash-lid-group">
-                  <rect x="2" y="8" width="20" height="3.5" rx="1.5" fill="var(--gray)" opacity="0.7"/>
-                  <rect x="9" y="4.5" width="6" height="3.5" rx="1.5" fill="var(--gray)" opacity="0.7"/>
-                </g>
-              </svg>
-            </span>
+            <span id="reward-out-drop" title="참가자 카드를 여기에 놓으면 오늘 미참 처리 (전체 목록에는 남아요)">↩ 오늘 빼기</span>
           </div>
           <div class="reward-add-row">
             <input class="reward-name-input" id="reward-name-input" placeholder="이름 추가 (전체 목록)"
@@ -801,12 +872,18 @@ h1 {
 
         <!-- 중: 구역 슬롯 -->
         <div class="card">
-          <div class="card-title">자리 배정
-            <button onclick="rewardAutoAssign()" style="margin-left:8px;padding:2px 8px;font-size:0.7rem;background:#3b2a7a;color:#c4a8ff;border:1px solid #7c5cbf;border-radius:4px;cursor:pointer;font-weight:700">자동배정</button>
-            <button onclick="rewardRecord()" style="margin-left:4px;padding:2px 8px;font-size:0.7rem;background:var(--gold);color:var(--text-on-accent);border:none;border-radius:4px;cursor:pointer;font-weight:700">기록</button>
-            <button onclick="rewardResetHistory()" style="margin-left:4px;padding:2px 8px;font-size:0.7rem;background:transparent;color:var(--gray);border:1px solid var(--border);border-radius:4px;cursor:pointer">초기화</button>
+          <div class="card-title reward-round-title">
+            <span>자리 배정</span>
+            <span class="reward-round" id="reward-round-label">1판째</span>
           </div>
+          <div id="reward-notice"></div>
           <div id="reward-slots"></div>
+          <button class="reward-next-btn" onclick="rewardNextRound()">판 끝! 다음 판 →</button>
+          <div class="reward-sub-actions">
+            <button onclick="rewardShuffle()" title="지금 판 배치만 새로 뽑아요 (기록에는 영향 없음)">다시 섞기</button>
+            <button id="reward-undo-btn" onclick="rewardUndoRound()" title="마지막으로 넘긴 판의 기록을 빼고 그 배치로 돌아가요">이전 판 되돌리기</button>
+          </div>
+          <button class="reward-reset-link" onclick="rewardResetHistory()">전체 기록 초기화</button>
         </div>
 
         <!-- 우: 상자 배정 결과 -->
@@ -856,10 +933,28 @@ h1 {
 
 </div>
 
-<div class="version-label">똘레로_1.011.0</div>
+<div id="reward-toast"></div>
+<div class="version-label">똘레로_1.012.0</div>
 
 <script>
 const PATCH_NOTES = [
+  { ver: '1.012.0', date: '26.09.14',
+    feat: [
+      '보상방: "판 끝! 다음 판 →" 한 번으로 기록 + 다음 판 배치 (자동배정/기록 버튼 통합)',
+      '보상방: 판 번호 표시, 이전 판 되돌리기, 다시 섞기',
+      '보상방: 새로고침해도 배치·인원수·판 번호 유지',
+      '보상방: 인원수 자동/수동 잠금 표시, 빈 구역·대기 인원 안내',
+      '보상방: 쓰레기통 → "오늘 빼기" (삭제가 아닌 오늘 미참 처리), 카드를 전체 목록으로 끌어올려도 오늘 빼기',
+      '보상방: 지도에서 5칸 이상 먹는 자리 색 구분',
+      '보상방: 오늘 참가 목록에 자리 배정된 사람도 남기고 배정/대기 구분 표시',
+    ],
+    fix: [
+      '새로고침하면 인원수가 6명으로 돌아가던 문제',
+      '오늘 빼기·삭제 후 인원수가 안 맞던 문제',
+      '못 들어가는 구역에 놓으면 아무 반응이 없던 문제 - 사유 안내',
+      '스왑 시 밀려난 사람이 못 들어가는 구역으로 가던 문제',
+    ],
+  },
   { ver: '1.011.0', date: '26.09.10',
     feat: ['"아모리안 파티퀘스트" 탭 추가 - 9칸(A2B3 / C6D95) 중 정답 5칸 찾기 퍼즐, 시도마다 정답 개수 기반 다음 추측 추천', '아모리안 탭은 다른 탭과 독립된 테마 적용 (추후 디자인 예정)'],
     fix: [],
@@ -1792,7 +1887,7 @@ const ZONE_CONFIGS = {
   ],
 };
 
-let rewardCount = 6;
+let rewardCount = Number(localStorage.getItem('rewardCount')) || 6;
 let rewardNames = JSON.parse(localStorage.getItem('rewardNames') || '[]');
 let rewardAllMembers = JSON.parse(localStorage.getItem('rewardAllMembers') || 'null');
 if (!rewardAllMembers) {
@@ -1822,23 +1917,84 @@ function canEnterZone(zoneId, name) {
   if (access === 'hybrid') return rewardMages.has(name) || rewardThieves.has(name);
   return true;
 }
-let zoneAssign = {};
+// 판 진행 상태 — 새로고침해도 그대로 복원
+let zoneAssign = JSON.parse(localStorage.getItem('rewardZoneAssign') || 'null') || {};
+let rewardCountMode = localStorage.getItem('rewardCountMode') || 'auto';        // 'auto' | 'manual'
+let rewardRound = Number(localStorage.getItem('rewardRound')) || 1;
+let rewardManualEdited = localStorage.getItem('rewardManualEdited') === '1';   // 드래그로 직접 고쳤는지
+let rewardRoundLog = JSON.parse(localStorage.getItem('rewardRoundLog') || '[]'); // 이전 판 되돌리기용
+let rewardStaleHint = false;   // 직접 고친 배치가 있는데 참가자/인원수가 바뀜
 let rDraggingName = null;
 let rDraggingFrom = null;
 
-function rewardSetCount(n) {
-  rewardCount = n;
-  // 기존 배정 중 유효하지 않은 구역의 이름은 풀로 반환
-  const newZones = ZONE_CONFIGS[n].map(z => z.id);
-  Object.keys(zoneAssign).forEach(z => {
-    if (!newZones.includes(+z)) {
-      zoneAssign[z] = []; // 사라지는 구역 → 풀로 자동 반환됨
-    }
-  });
-  // 새 구역 초기화
+function rewardSaveState() {
+  localStorage.setItem('rewardZoneAssign', JSON.stringify(zoneAssign));
+  localStorage.setItem('rewardCount', String(rewardCount));
+  localStorage.setItem('rewardCountMode', rewardCountMode);
+  localStorage.setItem('rewardRound', String(rewardRound));
+  localStorage.setItem('rewardManualEdited', rewardManualEdited ? '1' : '0');
+  localStorage.setItem('rewardRoundLog', JSON.stringify(rewardRoundLog));
+}
+
+let rewardToastTimer = null;
+function rewardToast(msg) {
+  const el = document.getElementById('reward-toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(rewardToastTimer);
+  rewardToastTimer = setTimeout(() => el.classList.remove('show'), 2200);
+}
+
+// 참가자 수 기준 배치 인원 (맵은 6~9인만 있음)
+function rewardTargetCount() {
+  return Math.min(9, Math.max(6, rewardNames.length));
+}
+
+// 현재 인원수 구역에 맞게 배정 정리: 없는 구역·미참가자·중복 제거
+function rewardNormalizeAssign() {
+  const seen = new Set();
   const next = {};
-  newZones.forEach(z => { next[z] = zoneAssign[z] || []; });
+  ZONE_CONFIGS[rewardCount].forEach(({ id }) => {
+    next[id] = (zoneAssign[id] || [])
+      .filter(n => rewardNames.includes(n) && !seen.has(n))
+      .slice(0, 1);
+    next[id].forEach(n => seen.add(n));
+  });
   zoneAssign = next;
+}
+
+function rewardApplyCount(n) {
+  const changed = rewardCount !== n;
+  rewardCount = n;
+  rewardNormalizeAssign();
+  return changed;
+}
+
+// 참가자·직업·인원수가 바뀐 뒤 공통 처리
+// 직접 고친 배치가 없으면 새로 배정, 있으면 덮어쓰지 않고 안내만
+function rewardReassignOrHint() {
+  if (rewardManualEdited) rewardStaleHint = true;
+  else rewardAutoAssign();
+}
+
+function rewardParticipantsChanged() {
+  rewardSaveNames();
+  if (rewardCountMode === 'auto') rewardApplyCount(rewardTargetCount());
+  else rewardNormalizeAssign();
+  rewardReassignOrHint();
+  rewardRender();
+}
+
+// 드롭다운에서 직접 고르면 수동 잠금
+function rewardSetCountManual(n) {
+  rewardCountMode = 'manual';
+  if (rewardApplyCount(n)) rewardReassignOrHint();
+  rewardRender();
+}
+
+function rewardSetCountAuto() {
+  rewardCountMode = 'auto';
+  if (rewardApplyCount(rewardTargetCount())) rewardReassignOrHint();
   rewardRender();
 }
 
@@ -1875,7 +2031,8 @@ function rewardToggleMage(name) {
     localStorage.setItem('rewardThieves', JSON.stringify([...rewardThieves]));
   }
   localStorage.setItem('rewardMages', JSON.stringify([...rewardMages]));
-  rewardRender();
+  if (rewardNames.includes(name)) rewardParticipantsChanged();
+  else rewardRender();
 }
 function rewardToggleThief(name) {
   if (rewardThieves.has(name)) {
@@ -1886,37 +2043,16 @@ function rewardToggleThief(name) {
     localStorage.setItem('rewardMages', JSON.stringify([...rewardMages]));
   }
   localStorage.setItem('rewardThieves', JSON.stringify([...rewardThieves]));
-  rewardRender();
+  if (rewardNames.includes(name)) rewardParticipantsChanged();
+  else rewardRender();
 }
 
 function rewardToggleToday(name) {
-  if (rewardNames.includes(name)) {
-    rewardNames = rewardNames.filter(n => n !== name);
-    Object.keys(zoneAssign).forEach(z => {
-      zoneAssign[z] = (zoneAssign[z] || []).filter(n => n !== name);
-    });
-  } else {
-    rewardNames.push(name);
-  }
-  rewardSaveNames();
-  rewardSyncCount();
-  rewardRender();
+  if (rewardNames.includes(name)) rewardNames = rewardNames.filter(n => n !== name);
+  else rewardNames.push(name);
+  rewardParticipantsChanged();
 }
 
-function rewardSyncCount() {
-  const raw = rewardNames.length;
-  if (raw < 6) return;
-  const n = Math.min(raw, 9);
-  if (rewardCount === n) return;
-  const newZones = ZONE_CONFIGS[n].map(z => z.id);
-  Object.keys(zoneAssign).forEach(z => { if (!newZones.includes(+z)) zoneAssign[z] = []; });
-  const next = {};
-  newZones.forEach(z => { next[z] = zoneAssign[z] || []; });
-  zoneAssign = next;
-  rewardCount = n;
-  const sel = document.getElementById('reward-count-select');
-  if (sel) sel.value = n;
-}
 
 function rewardSortMembers() {
   rewardAllMembers.sort((a, b) => a.localeCompare(b, 'ko'));
@@ -1926,27 +2062,16 @@ function rewardSortMembers() {
 
 function rewardToggleAll() {
   const allParticipating = rewardAllMembers.length > 0 && rewardAllMembers.every(n => rewardNames.includes(n));
-  if (allParticipating) {
-    rewardNames = [];
-    Object.keys(zoneAssign).forEach(z => { zoneAssign[z] = []; });
-  } else {
-    rewardNames = [...rewardAllMembers];
-  }
-  rewardSaveNames();
-  rewardSyncCount();
-  rewardRender();
+  rewardNames = allParticipating ? [] : [...rewardAllMembers];
+  rewardParticipantsChanged();
 }
 
 function rewardDeleteMember(name) {
   if (!confirm(`'${name}'을(를) 전체 목록에서 삭제할까요?`)) return;
   rewardAllMembers = rewardAllMembers.filter(n => n !== name);
   rewardNames = rewardNames.filter(n => n !== name);
-  Object.keys(zoneAssign).forEach(z => {
-    zoneAssign[z] = (zoneAssign[z] || []).filter(n => n !== name);
-  });
   localStorage.setItem('rewardAllMembers', JSON.stringify(rewardAllMembers));
-  rewardSaveNames();
-  rewardRender();
+  rewardParticipantsChanged();
 }
 
 function rDragStart(e, name, from) {
@@ -1960,23 +2085,30 @@ function rewardDropToZone(e, zone) {
   e.preventDefault();
   e.currentTarget.classList.remove('drag-over');
   if (!rDraggingName) return;
-  if (!canEnterZone(zone, rDraggingName)) {
-    rDraggingName = null; rDraggingFrom = null;
+  const name = rDraggingName, from = rDraggingFrom;
+  rDraggingName = null; rDraggingFrom = null;
+  if (String(from) === String(zone)) return;
+
+  if (!canEnterZone(zone, name)) {
+    rewardToast(zoneAccess(zone) === 'mage'
+      ? `${zone}구역은 마법사만 들어갈 수 있어요`
+      : `${zone}구역은 마법사·도적만 들어갈 수 있어요`);
     return;
   }
+
   if (!zoneAssign[zone]) zoneAssign[zone] = [];
   const existing = zoneAssign[zone][0]; // 기존 자리에 있던 사람
-  // 드래그한 사람을 기존 자리에서 제거
-  if (rDraggingFrom !== 'pool') {
-    zoneAssign[rDraggingFrom] = zoneAssign[rDraggingFrom].filter(n => n !== rDraggingName);
-    // 기존 자리가 있으면 스왑: 빠진 자리에 밀려난 사람 배치
-    if (existing && existing !== rDraggingName) {
-      zoneAssign[rDraggingFrom] = [existing];
+  if (from !== 'pool') {
+    zoneAssign[from] = zoneAssign[from].filter(n => n !== name);
+    // 스왑: 밀려난 사람이 빈 자리에 들어갈 수 있을 때만, 아니면 풀로
+    if (existing && existing !== name) {
+      if (canEnterZone(from, existing)) zoneAssign[from] = [existing];
+      else rewardToast(`${existing}님은 ${from}구역에 못 들어가서 대기로 옮겼어요`);
     }
   }
-  // 목적지에 한 명만 배치
-  zoneAssign[zone] = [rDraggingName];
-  rDraggingName = null; rDraggingFrom = null;
+  zoneAssign[zone] = [name];
+  rewardManualEdited = true;
+  rewardStaleHint = false;
   rewardRender();
 }
 
@@ -1986,12 +2118,14 @@ function rewardDropToPool(e) {
   if (!rDraggingName) return;
   if (rDraggingFrom !== 'pool') {
     zoneAssign[rDraggingFrom] = zoneAssign[rDraggingFrom].filter(n => n !== rDraggingName);
+    rewardManualEdited = true;
+    rewardStaleHint = false;
   }
   rDraggingName = null; rDraggingFrom = null;
   rewardRender();
 }
 
-function rewardMakeCard(name, from, showStats = false) {
+function rewardMakeCard(name, from, showStats = false, showJobs = showStats) {
   const card = document.createElement('div');
   card.className = 'name-card';
   const topRow = document.createElement('div');
@@ -1999,7 +2133,7 @@ function rewardMakeCard(name, from, showStats = false) {
   const nameSpan = document.createElement('span');
   nameSpan.textContent = name;
   topRow.appendChild(nameSpan);
-  if (from === 'pool' || showStats) {
+  if (showJobs) {
     const mageBtn = document.createElement('span');
     const isMage = rewardMages.has(name);
     mageBtn.textContent = '마법사';
@@ -2019,7 +2153,7 @@ function rewardMakeCard(name, from, showStats = false) {
     topRow.appendChild(thiefBtn);
   }
   card.appendChild(topRow);
-  if (from === 'pool' || showStats) {
+  if (showStats) {
     const h = rewardHistory[name];
     if (h && Object.keys(h).length) {
       const stat = document.createElement('span');
@@ -2066,39 +2200,134 @@ function rewardAutoAssign() {
   });
 
   zoneAssign = newAssign;
+}
+
+// 지금 판 배치만 새로 뽑기 (기록에는 영향 없음)
+function rewardShuffle() {
+  rewardAutoAssign();
+  rewardManualEdited = false;
+  rewardStaleHint = false;
   rewardRender();
 }
 
 function rewardResetHistory() {
-  if (!confirm('기록을 전체 초기화할까요?')) return;
+  if (!confirm('누적 기록과 판 번호를 모두 초기화할까요?\n되돌릴 수 없어요.')) return;
   rewardHistory = {};
   localStorage.removeItem('rewardHistory');
+  rewardRoundLog = [];
+  rewardRound = 1;
   rewardRender();
+  rewardToast('기록을 초기화했어요');
 }
 
-function rewardRecord() {
-  const config = ZONE_CONFIGS[rewardCount];
-  const boxCountMap = {};
-  config.forEach(({ id, boxes }) => { boxCountMap[String(id)] = boxes.length; });
-  let recorded = false;
-  Object.entries(zoneAssign).forEach(([zoneId, names]) => {
-    if (!names.length) return;
-    const cnt = boxCountMap[String(zoneId)];
-    if (!cnt) return;
-    names.forEach(name => {
-      if (!rewardHistory[name]) rewardHistory[name] = {};
-      const key = String(cnt);
-      rewardHistory[name][key] = (rewardHistory[name][key] || 0) + 1;
-      recorded = true;
-    });
+// 지금 판을 기록하고 곧바로 다음 판 배치로 넘어간다
+function rewardNextRound() {
+  const records = [];
+  ZONE_CONFIGS[rewardCount].forEach(({ id, boxes }) => {
+    (zoneAssign[id] || []).forEach(name => records.push([name, boxes.length]));
+  });
+  if (!records.length) { rewardToast('배정된 사람이 없어요'); return; }
+
+  records.forEach(([name, cnt]) => {
+    const h = rewardHistory[name] || (rewardHistory[name] = {});
+    h[cnt] = (h[cnt] || 0) + 1;
   });
   localStorage.setItem('rewardHistory', JSON.stringify(rewardHistory));
-  if (recorded) rewardRender();
+
+  rewardRoundLog.push({
+    round: rewardRound, count: rewardCount, manualEdited: rewardManualEdited,
+    assign: JSON.parse(JSON.stringify(zoneAssign)), records,
+  });
+  if (rewardRoundLog.length > 30) rewardRoundLog.shift();
+
+  const done = rewardRound++;
+  rewardAutoAssign();
+  rewardManualEdited = false;
+  rewardStaleHint = false;
+  rewardRender();
+  rewardToast(`${done}판째 기록 완료 · ${records.length}명 → ${rewardRound}판째 배치`);
+}
+
+// 마지막으로 넘긴 판의 기록을 빼고 그 배치로 복원
+function rewardUndoRound() {
+  const last = rewardRoundLog.pop();
+  if (!last) return;
+  last.records.forEach(([name, cnt]) => {
+    const h = rewardHistory[name];
+    if (!h || !h[cnt]) return;
+    if (--h[cnt] <= 0) delete h[cnt];
+    if (!Object.keys(h).length) delete rewardHistory[name];
+  });
+  localStorage.setItem('rewardHistory', JSON.stringify(rewardHistory));
+
+  rewardRound = last.round;
+  rewardCount = last.count;
+  zoneAssign = last.assign;
+  rewardNormalizeAssign();          // 그사이 빠진 참가자는 제외
+  rewardManualEdited = last.manualEdited;
+  rewardStaleHint = false;
+  rewardRender();
+  rewardToast(`${last.round}판째 기록을 취소하고 그 배치로 돌아왔어요`);
 }
 
 function rewardRender() {
   const config = ZONE_CONFIGS[rewardCount];
   const assigned = new Set(Object.values(zoneAssign).flat());
+  rewardSaveState();
+
+  // 인원수 + 자동/수동 표시
+  document.getElementById('reward-count-select').value = rewardCount;
+  const modeEl = document.getElementById('reward-count-mode');
+  modeEl.innerHTML = '';
+  if (rewardCountMode === 'auto') {
+    modeEl.className = 'reward-mode';
+    modeEl.textContent = `자동 · 참가 ${rewardNames.length}명`;
+    modeEl.title = '참가자 수에 맞춰 자동으로 바뀌어요';
+  } else {
+    modeEl.className = 'reward-mode manual';
+    modeEl.title = '직접 고른 인원수예요. 참가자가 바뀌어도 그대로 유지돼요';
+    const lock = document.createElement('span');
+    lock.textContent = '🔒 수동';
+    const autoBtn = document.createElement('button');
+    autoBtn.textContent = '자동으로';
+    autoBtn.onclick = rewardSetCountAuto;
+    modeEl.append(lock, autoBtn);
+  }
+
+  // 판 번호 · 되돌리기
+  document.getElementById('reward-round-label').textContent = `${rewardRound}판째`;
+  document.getElementById('reward-undo-btn').disabled = rewardRoundLog.length === 0;
+
+  // 안내 · 경고
+  const notice = document.getElementById('reward-notice');
+  notice.innerHTML = '';
+  const addNotice = (text, info, action) => {
+    const item = document.createElement('div');
+    item.className = 'reward-notice-item' + (info ? ' info' : '');
+    const t = document.createElement('span');
+    t.textContent = text;
+    item.appendChild(t);
+    if (action) {
+      const b = document.createElement('button');
+      b.textContent = action[0];
+      b.onclick = action[1];
+      item.appendChild(b);
+    }
+    notice.appendChild(item);
+  };
+  if (!rewardNames.length) {
+    addNotice('전체 목록에서 오늘 참가자를 체크해 주세요', true);
+  } else {
+    if (rewardStaleHint) addNotice('참가자·인원수가 바뀌었어요', true, ['다시 섞기', rewardShuffle]);
+    const emptyZones = config.filter(z => !(zoneAssign[z.id] || []).length);
+    const waiting = rewardNames.filter(n => !assigned.has(n)).length;
+    if (emptyZones.length) {
+      const needJob = waiting > 0 && emptyZones.some(z => zoneAccess(z.id) !== 'open');
+      addNotice(`빈 구역 ${emptyZones.map(z => z.id).join(', ')} — 상자 주인이 없어요${needJob ? ' (마법사/도적 필요)' : ''}`);
+    } else if (waiting) {
+      addNotice(`구역이 꽉 찼어요 — ${waiting}명 대기`, true);
+    }
+  }
 
   // 전체 목록
   const toggleAllBtn = document.getElementById('reward-toggle-all-btn');
@@ -2142,25 +2371,47 @@ function rewardRender() {
   });
 
   // 풀
+  // 오늘 참가자는 전원 표시 — 대기 먼저, 자리에 들어간 사람은 구역 번호순
+  const zoneOf = {};
+  config.forEach(({ id }) => (zoneAssign[id] || []).forEach(n => { zoneOf[n] = id; }));
+  const waitingNames = rewardNames.filter(n => zoneOf[n] === undefined);
+  const seatedNames = rewardNames.filter(n => zoneOf[n] !== undefined).sort((a, b) => zoneOf[a] - zoneOf[b]);
+
   const todayCount = document.getElementById('reward-today-count');
-  if (todayCount) todayCount.textContent = `${rewardNames.length}명`;
+  if (todayCount) todayCount.textContent = `${rewardNames.length}명 · 배정 ${seatedNames.length} · 대기 ${waitingNames.length}`;
   const pool = document.getElementById('reward-name-pool');
   pool.innerHTML = '';
-  rewardNames.filter(n => !assigned.has(n)).forEach(n => pool.appendChild(rewardMakeCard(n, 'pool')));
+  const addPoolCard = (name, zoneId) => {
+    // 배정된 사람은 자기 구역에서 끌어온 것으로 취급 → 이동/스왑, 풀에 놓으면 대기
+    // 누적 기록·구역 번호는 자리 배정 카드에 이미 있으니 여기선 배정 여부만 표시
+    const card = rewardMakeCard(name, zoneId === undefined ? 'pool' : zoneId, false, true);
+    if (zoneId === undefined) {
+      const tag = document.createElement('span');
+      tag.className = 'name-slot-tag wait';
+      tag.textContent = '대기';
+      card.firstChild.appendChild(tag);
+    } else {
+      card.classList.add('assigned');
+    }
+    pool.appendChild(card);
+  };
+  waitingNames.forEach(n => addPoolCard(n));
+  seatedNames.forEach(n => addPoolCard(n, zoneOf[n]));
 
   // 지도 오버레이
   const mapEl = document.getElementById('reward-map-container');
   mapEl.querySelectorAll('.rmap-zone').forEach(el => el.remove());
-  config.forEach(({ id, left, top, w, h }) => {
+  config.forEach(({ id, left, top, w, h, boxes }) => {
+    const big = boxes.length >= 5;
     const zone = document.createElement('div');
-    zone.className = 'rmap-zone';
+    zone.className = 'rmap-zone' + (big ? ' big-zone' : '');
     zone.dataset.zone = id;
     zone.style.cssText = `left:${left}%;top:${top}%;width:${w}%;height:${h}%`;
     const names = zoneAssign[id] || [];
     if (names.length) zone.classList.add('has-name');
     const numDiv = document.createElement('div');
     numDiv.className = 'rmap-zone-num';
-    numDiv.textContent = `${id}구역`;
+    numDiv.textContent = big ? `${id}구역 · ${boxes.length}칸` : `${id}구역`;
     zone.appendChild(numDiv);
     names.forEach(n => zone.appendChild(rewardMakeCard(n, id)));
     zone.ondragover = e => { e.preventDefault(); zone.classList.add('drag-over'); };
@@ -2255,31 +2506,48 @@ function rewardRender() {
 // 보상맵 배경 자동 로드
 document.getElementById('reward-map-container').style.backgroundImage = "url('./SVG.svg')";
 
-// 쓰레기통 초기화
+// 오늘 빼기: 칩이나 전체 목록에 카드를 놓으면 오늘 참가에서만 제외 (전체 목록에는 남음)
 (function() {
-  const trash = document.getElementById('reward-trash');
-  trash.addEventListener('dragover', e => { e.preventDefault(); trash.classList.add('lid-open'); });
-  trash.addEventListener('dragleave', () => trash.classList.remove('lid-open'));
-  trash.addEventListener('drop', e => {
-    e.preventDefault();
-    trash.classList.remove('lid-open');
-    if (!rDraggingName) return;
-    rewardNames = rewardNames.filter(n => n !== rDraggingName);
-    if (rDraggingFrom !== 'pool') {
-      zoneAssign[rDraggingFrom] = (zoneAssign[rDraggingFrom] || []).filter(n => n !== rDraggingName);
-    }
-    rewardSaveNames();
-    rDraggingName = null; rDraggingFrom = null;
-    rewardRender();
-    setTimeout(() => {
-      trash.classList.add('digesting');
-      trash.addEventListener('animationend', () => trash.classList.remove('digesting'), { once: true });
-    }, 230);
+  const bindOutDrop = (el, onDropped) => {
+    el.addEventListener('dragover', e => {
+      if (!rDraggingName) return;
+      e.preventDefault();
+      el.classList.add('drop-hover');
+    });
+    // 자식 요소로 들어갈 때 생기는 dragleave는 무시
+    el.addEventListener('dragleave', e => {
+      if (!el.contains(e.relatedTarget)) el.classList.remove('drop-hover');
+    });
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      el.classList.remove('drop-hover');
+      if (!rDraggingName) return;
+      const name = rDraggingName;
+      rDraggingName = null; rDraggingFrom = null;
+      rewardNames = rewardNames.filter(n => n !== name);
+      rewardParticipantsChanged();
+      rewardToast(`${name} 오늘 빼기 — 전체 목록에는 남아 있어요`);
+      if (onDropped) onDropped();
+    });
+  };
+
+  const chip = document.getElementById('reward-out-drop');
+  bindOutDrop(chip, () => {
+    chip.classList.add('dropped');
+    chip.addEventListener('animationend', () => chip.classList.remove('dropped'), { once: true });
   });
+  bindOutDrop(document.getElementById('reward-all-members'));
 })();
 
-// 초기 구역 세팅
-rewardSetCount(6);
+// 저장된 판 상태 복원 — 처음 열면 참가자 기준으로 바로 배정
+(function rewardInit() {
+  const hadSaved = localStorage.getItem('rewardZoneAssign') !== null;
+  if (!ZONE_CONFIGS[rewardCount]) rewardCount = 6;
+  const changed = rewardCountMode === 'auto' && rewardApplyCount(rewardTargetCount());
+  rewardNormalizeAssign();
+  if (!hadSaved || (changed && !rewardManualEdited)) rewardAutoAssign();
+  rewardRender();
+})();
 
 // Init
 buildPicker();
