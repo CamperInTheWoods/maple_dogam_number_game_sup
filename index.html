@@ -672,6 +672,11 @@ h1 {
   color: var(--dark);
 }
 #tab-amo .card { backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+/* 아모리안 탭이 활성화된 동안은 상단 탭 선택 바도 라이트/다크 토글과 무관하게 고정된 색 유지 */
+body.amo-active .tab-bar { background: rgba(255,255,255,.8); border-color: #a89bc4; }
+body.amo-active .tab-btn { color: #8d84a6; }
+body.amo-active .tab-btn:hover { color: #3b3260; background: rgba(255,255,255,.55); }
+body.amo-active .tab-btn.active { background: rgba(255,255,255,.55); color: #6472b9; }
 .amo-tile-row { display:flex; gap:8px; justify-content:center; margin-bottom:8px; }
 .amo-tile {
   width: 52px; height: 52px;
